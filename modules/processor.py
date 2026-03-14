@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 import shutil
-from utils import get_video_duration, clean_empty_dirs
+from modules.utils import get_video_duration, clean_empty_dirs
 
 def process_file(filepath, task, state_manager, logger):
     """

@@ -1,11 +1,11 @@
 import time
 import sys
 import os
-from config import Config
-from logger import setup_logger
-from state import StateManager
-from scanner import scan_directory
-from processor import process_file
+from modules.config import Config
+from modules.logger import setup_logger
+from modules.state import StateManager
+from modules.scanner import scan_directory
+from modules.processor import process_file
 
 # 尝试导入 fcntl，用于 Linux 文件锁
 try:
