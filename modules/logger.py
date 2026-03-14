@@ -9,7 +9,7 @@ def setup_logger(log_dir="logs", max_log_files=7):
 
     # 日志以日期命名
     date_str = datetime.now().strftime("%Y-%m-%d")
-    log_file = os.path.join(log_dir, f"{date_str}.log")
+    log_file = os.path.join(log_dir, f"videowatchdog_{date_str}.log")
 
     logger = logging.getLogger("VideoWatchdog")
     logger.setLevel(logging.INFO)

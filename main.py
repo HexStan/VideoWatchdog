@@ -29,20 +29,20 @@ def acquire_lock():
         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return lock_fd
     except IOError:
-        print("Another instance is already running. Exiting.")
+        print("另一个实例正在运行，已退出。")
         sys.exit(1)
 
 def run_task(task, state_manager, logger):
     """
     执行单个任务的扫描和处理流程
     """
-    logger.info(f"Running task: {task.get('name', 'unnamed')}")
+    logger.info(f"正在执行任务: {task.get('name', 'unnamed')}")
     
     # 扫描目录获取符合条件的文件
     files = scan_directory(task, state_manager, logger)
     
     if not files:
-        logger.info(f"No files to process for task: {task.get('name', 'unnamed')}")
+        logger.info(f"任务中没有待处理的文件: {task.get('name', 'unnamed')}")
         return
 
     # 逐个处理文件
@@ -58,7 +58,7 @@ def main():
         config = Config("config.toml")
         config.validate()
     except Exception as e:
-        print(f"Failed to load config: {e}")
+        print(f"加载配置失败: {e}")
         sys.exit(1)
         
     global_cfg = config.global_config
@@ -73,21 +73,21 @@ def main():
     state_manager = StateManager(global_cfg.get('state_file', 'state.json'))
     tasks = config.tasks
     
-    logger.info("VideoWatchdog started.")
+    logger.info("VideoWatchdog 已启动。")
     
     # 检查是否所有任务都是一次性运行 (scan_interval == 0)
     all_once = all(t.get('scan_interval', 0) == 0 for t in tasks)
     
     if all_once:
-        logger.info("All tasks are configured to run once (scan_interval = 0).")
+        logger.info("由于扫描间隔为 0，作为一次性任务执行。")
         for task in tasks:
             run_task(task, state_manager, logger)
-        logger.info("All tasks completed. Exiting.")
+        logger.info("所有任务完成，退出中……")
     else:
         # 记录每个任务上次运行的时间
         last_run = {i: 0 for i in range(len(tasks))}
         
-        logger.info("Entering main loop for periodic tasks.")
+        logger.info("VideoWatchdog 已进入监控状态。")
         try:
             while True:
                 current_time = time.time()
@@ -107,7 +107,7 @@ def main():
                 # 避免 CPU 占用过高
                 time.sleep(1)
         except KeyboardInterrupt:
-            logger.info("VideoWatchdog stopped by user.")
+            logger.info("VideoWatchdog 接收到退出信号，正在退出……")
 
 if __name__ == "__main__":
     main()

@@ -12,7 +12,7 @@ def scan_directory(task, state_manager, logger):
 
     valid_files = []
     if not os.path.exists(monitor_dir):
-        logger.warning(f"Directory does not exist: {monitor_dir}")
+        logger.warning(f"目录不存在: {monitor_dir}")
         return valid_files
 
     current_time = time.time()
@@ -37,11 +37,11 @@ def scan_directory(task, state_manager, logger):
                     
                 candidates.append((filepath, stat.st_size))
             except OSError as e:
-                logger.error(f"Error accessing file {filepath}: {e}")
+                logger.error(f"读取文件失败: {filepath}\n错误内容: {e}")
 
-    # 第二遍扫描：如果 Z > 0，等待 Z 秒后检查文件大小是否变化
+    # 等待 Z 秒后检查文件大小是否变化
     if stable_duration > 0 and candidates:
-        logger.info(f"Waiting {stable_duration} seconds to check size stability for {len(candidates)} files in {monitor_dir}...")
+        logger.info(f"正在检查 {stable_duration} 秒内的文件大小稳定性。")
         time.sleep(stable_duration)
         
         for filepath, old_size in candidates:

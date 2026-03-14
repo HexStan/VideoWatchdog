@@ -36,7 +36,7 @@ def process_file(filepath, task, state_manager, logger):
     
     # 构造 FFmpeg 命令
     cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
-    logger.info(f"Starting transcoding: {filepath}")
+    logger.info(f"开始转码: {filepath}")
     
     start_time = time.time()
     try:
@@ -47,8 +47,8 @@ def process_file(filepath, task, state_manager, logger):
         if process.returncode == 0:
             # 计算转码速度
             speed = duration / elapsed_time if elapsed_time > 0 else 0
-            logger.info(f"Success: {filepath} -> {out_filepath}")
-            logger.info(f"Speed: {speed:.2f}x (Duration: {duration:.2f}s, Time: {elapsed_time:.2f}s)")
+            logger.info(f"转码成功: {filepath} -> {out_filepath}")
+            logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s，转码速度: {speed:.2f}X。")
             
             # 移动源文件到目录 C
             shutil.move(filepath, done_filepath)
@@ -60,7 +60,7 @@ def process_file(filepath, task, state_manager, logger):
             clean_empty_dirs(monitor_dir)
         else:
             error_msg = process.stderr.decode('utf-8', errors='ignore')
-            logger.error(f"Failed: {filepath}. FFmpeg error: {error_msg}")
+            logger.error(f"转码失败: {filepath}\n错误内容: {error_msg}")
             
             # 增加失败次数
             state_manager.increment_failure(filepath)
@@ -70,5 +70,5 @@ def process_file(filepath, task, state_manager, logger):
                 os.remove(out_filepath)
                 
     except Exception as e:
-        logger.error(f"Exception during processing {filepath}: {e}")
+        logger.error(f"未知失败: {filepath}: {e}")
         state_manager.increment_failure(filepath)

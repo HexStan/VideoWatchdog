@@ -20,7 +20,7 @@ class StateManager:
             with open(self.state_file, 'w', encoding='utf-8') as f:
                 json.dump(self.state, f, indent=4, ensure_ascii=False)
         except IOError as e:
-            print(f"Failed to save state: {e}")
+            print(f"保存状态失败: {e}")
 
     def get_failures(self, filepath):
         """获取指定文件的失败次数"""

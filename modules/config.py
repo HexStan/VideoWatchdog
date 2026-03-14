@@ -8,7 +8,7 @@ class Config:
 
     def _load_config(self):
         if not os.path.exists(self.config_path):
-            raise FileNotFoundError(f"Configuration file not found: {self.config_path}")
+            raise FileNotFoundError(f"在 {self.config_path} 中找不到配置文件。")
         
         with open(self.config_path, 'r', encoding='utf-8') as f:
             return toml.load(f)
@@ -23,13 +23,13 @@ class Config:
 
     def validate(self):
         if not self.tasks:
-            raise ValueError("No tasks configured in config.toml")
+            raise ValueError("配置文件中没有任何任务。")
         
         for i, task in enumerate(self.tasks):
             required_keys = ['monitor_dir', 'output_dir', 'processed_dir', 'ffmpeg_cmd', 'suffix', 'format']
             for key in required_keys:
                 if key not in task:
-                    raise ValueError(f"Task {i} is missing required key: {key}")
+                    raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
             
             # Set defaults for optional keys
             task.setdefault('scan_interval', 60)
