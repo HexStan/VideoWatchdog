@@ -75,11 +75,11 @@ def main():
     
     logger.info("VideoWatchdog started.")
     
-    # 检查是否所有任务都是一次性运行 (interval_x == 0)
-    all_once = all(t.get('interval_x', 0) == 0 for t in tasks)
+    # 检查是否所有任务都是一次性运行 (scan_interval == 0)
+    all_once = all(t.get('scan_interval', 0) == 0 for t in tasks)
     
     if all_once:
-        logger.info("All tasks are configured to run once (interval_x = 0).")
+        logger.info("All tasks are configured to run once (scan_interval = 0).")
         for task in tasks:
             run_task(task, state_manager, logger)
         logger.info("All tasks completed. Exiting.")
@@ -92,7 +92,7 @@ def main():
             while True:
                 current_time = time.time()
                 for i, task in enumerate(tasks):
-                    interval = task.get('interval_x', 0)
+                    interval = task.get('scan_interval', 0)
                     
                     if interval == 0:
                         # 一次性任务只在第一次循环时运行

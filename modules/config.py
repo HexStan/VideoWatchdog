@@ -32,10 +32,10 @@ class Config:
                     raise ValueError(f"Task {i} is missing required key: {key}")
             
             # Set defaults for optional keys
-            task.setdefault('interval_x', 60)
-            task.setdefault('mod_time_y', 0)
-            task.setdefault('size_check_z', 0)
-            task.setdefault('max_retries_w', 3)
+            task.setdefault('scan_interval', 60)
+            task.setdefault('file_mtime', 0)
+            task.setdefault('stable_duration', 0)
+            task.setdefault('max_retries', 3)
             task.setdefault('name', f"task_{i}")
 
         return True

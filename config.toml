@@ -26,16 +26,16 @@ output_dir = "./output"
 processed_dir = "./done"
 
 # 遍历时间间隔X (秒)，为0则作为一次性脚本运行一次后退出
-interval_x = 60
+scan_interval = 60
 
 # 文件修改时间阈值Y (秒)，为0则不以修改时间为筛选条件
-mod_time_y = 300
+file_mtime = 300
 
 # 检测文件大小变化的时间间隔Z (秒)，为0则不检测大小变化
-size_check_z = 5
+stable_duration = 5
 
 # 最多重试次数W
-max_retries_w = 3
+max_retries = 3
 
 # 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径
 ffmpeg_cmd = "ffmpeg -y -i \"{input}\" -c:v libx264 -preset fast -crf 23 \"{output}\""
@@ -54,10 +54,10 @@ format = "mp4"
 # dir_a = "./input2"
 # dir_b = "./output2"
 # dir_c = "./done2"
-# interval_x = 0
-# mod_time_y = 0
-# size_check_z = 0
-# max_retries_w = 1
+# scan_interval = 0
+# file_mtime = 0
+# stable_duration = 0
+# max_retries = 1
 # ffmpeg_cmd = "ffmpeg -y -i \"{input}\" -c:a aac -b:a 128k \"{output}\""
 # suffix = "audio"
 # format = "mp3"
