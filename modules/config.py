@@ -26,7 +26,7 @@ class Config:
             raise ValueError("No tasks configured in config.toml")
         
         for i, task in enumerate(self.tasks):
-            required_keys = ['dir_a', 'dir_b', 'dir_c', 'ffmpeg_cmd', 'suffix', 'format']
+            required_keys = ['monitor_dir', 'output_dir', 'processed_dir', 'ffmpeg_cmd', 'suffix', 'format']
             for key in required_keys:
                 if key not in task:
                     raise ValueError(f"Task {i} is missing required key: {key}")

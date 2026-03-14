@@ -8,23 +8,23 @@ def process_file(filepath, task, state_manager, logger):
     """
     处理单个文件：执行 FFmpeg，移动文件，记录日志和状态
     """
-    dir_a = task['dir_a']
-    dir_b = task['dir_b']
-    dir_c = task['dir_c']
+    monitor_dir = task['monitor_dir']
+    output_dir = task['output_dir']
+    processed_dir = task['processed_dir']
     
     # 计算相对路径以保持目录结构
-    rel_path = os.path.relpath(filepath, dir_a)
+    rel_path = os.path.relpath(filepath, monitor_dir)
     rel_dir = os.path.dirname(rel_path)
     filename = os.path.basename(filepath)
     name, _ = os.path.splitext(filename)
     
     # 构造输出文件名：原文件名-后缀.格式
     out_filename = f"{name}-{task['suffix']}.{task['format']}"
-    out_dir = os.path.join(dir_b, rel_dir)
+    out_dir = os.path.join(output_dir, rel_dir)
     out_filepath = os.path.join(out_dir, out_filename)
     
     # 构造完成后的源文件移动路径
-    done_dir = os.path.join(dir_c, rel_dir)
+    done_dir = os.path.join(processed_dir, rel_dir)
     done_filepath = os.path.join(done_dir, filename)
     
     # 确保输出和完成目录存在
@@ -57,7 +57,7 @@ def process_file(filepath, task, state_manager, logger):
             state_manager.reset_failure(filepath)
             
             # 清理目录 A 中的空文件夹
-            clean_empty_dirs(dir_a)
+            clean_empty_dirs(monitor_dir)
         else:
             error_msg = process.stderr.decode('utf-8', errors='ignore')
             logger.error(f"Failed: {filepath}. FFmpeg error: {error_msg}")

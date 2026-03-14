@@ -16,14 +16,14 @@ state_file = "state.json"
 
 name = "task_1"
 
-# 指定目录A (待处理目录)
-dir_a = "./input"
+# 指定监控目录 (待处理目录)
+monitor_dir = "./input"
 
-# 指定目录B (输出目录)
-dir_b = "./output"
+# 指定输出目录
+output_dir = "./output"
 
-# 指定目录C (处理完成后的源文件移动目录)
-dir_c = "./done"
+# 指定处理完成后的源文件移动目录
+processed_dir = "./done"
 
 # 遍历时间间隔X (秒)，为0则作为一次性脚本运行一次后退出
 interval_x = 60
