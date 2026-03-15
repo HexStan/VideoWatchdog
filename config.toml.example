@@ -16,16 +16,16 @@ state_file = "state.json"
 
 name = "Task 1"
 
-# 指定监控目录 (待处理目录)
+# 指定监控目录 (待处理目录)，必填
 monitor_dir = "./input"
 
-# 指定输出目录
+# 指定输出目录，必填
 output_dir = "./output"
 
-# 指定处理完成后的源文件移动目录
+# 指定处理完成后的源文件移动目录，必填
 processed_dir = "./done"
 
-# 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 ["mp4"]
+# 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
 input_formats = ["mp4", "mkv", "avi"]
 
 # 遍历时间间隔（秒），为0则作为一次性脚本运行一次后退出
@@ -40,7 +40,7 @@ stable_duration = 5
 # 最多重试次数
 max_retries = 3
 
-# 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径
+# 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径，必填
 # 支持多行命令，执行时会自动合并为单行
 ffmpeg_cmd = """
 ffmpeg -y \
@@ -62,13 +62,9 @@ output_format = "mp4"
 # 第二组任务示例 (可选)
 # [[tasks]]
 # name = "Task 2"
-# dir_a = "./input2"
-# dir_b = "./output2"
-# dir_c = "./done2"
-# scan_interval = 0
-# file_mtime = 0
-# stable_duration = 0
-# max_retries = 1
+# monitor_dir = "./input2"
+# output_dir = "./output2"
+# processed_dir = "./done2"
 # ffmpeg_cmd = """
 # ffmpeg -y \
 #   -i "{input}" \
@@ -76,5 +72,3 @@ output_format = "mp4"
 #   -b:a 128k \
 #   "{output}"
 # """
-# suffix = "audio"
-# output_format = "mp3"
