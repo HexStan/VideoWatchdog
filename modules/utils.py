@@ -30,6 +30,10 @@ def clean_empty_dirs(directory):
 
     # topdown=False 保证先处理子目录，再处理父目录
     for dirpath, dirnames, filenames in os.walk(directory, topdown=False):
+        # 不要删除根目录本身
+        if os.path.abspath(dirpath) == os.path.abspath(directory):
+            continue
+            
         # 如果目录为空（没有文件也没有子目录）
         if not os.listdir(dirpath):
             try:
