@@ -39,7 +39,7 @@ class Config:
             task.setdefault('name', f"task_{i}")
             task.setdefault('input_formats', ['mp4'])
             
-            # Ensure input_formats do not start with a dot
-            task['input_formats'] = [fmt.lstrip('.') for fmt in task['input_formats']]
+            # 确保 input_formats 以点开头
+            task['input_formats'] = [ext if ext.startswith('.') else f".{ext}" for ext in task['input_formats']]
 
         return True
