@@ -50,11 +50,11 @@ def run_task(task, state_manager, logger):
         return False
 
     task['is_monitoring'] = False
-    logger.info(f"正在执行任务: {task_name}")
     
     # 逐个处理文件
     for filepath in files:
-        logger.info(f"检测到文件变动: {filepath}")
+        rel_path = os.path.relpath(filepath, monitor_dir)
+        logger.info(f"【{task_name}】监测到新文件 {rel_path}")
         process_file(filepath, task, state_manager, logger)
         
     return True
