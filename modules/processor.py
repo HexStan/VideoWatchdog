@@ -19,7 +19,7 @@ def process_file(filepath, task, state_manager, logger):
     name, _ = os.path.splitext(filename)
     
     # 构造输出文件名：原文件名-后缀.格式
-    out_filename = f"{name}-{task['suffix']}.{task['format']}"
+    out_filename = f"{name}-{task['suffix']}.{task['output_format']}"
     out_dir = os.path.join(output_dir, rel_dir)
     out_filepath = os.path.join(out_dir, out_filename)
     
