@@ -42,15 +42,56 @@ def process_file(filepath, task, state_manager, logger):
     
     start_time = time.time()
     try:
-        # 执行命令
-        process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        # 执行命令，使用 Popen 实时读取输出
+        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        
+        last_status_line = ""
+        error_output = []
+        final_status = ""
+        
+        # 实时读取 stderr
+        while True:
+            char = process.stderr.read(1)
+            if not char and process.poll() is not None:
+                break
+            
+            if char:
+                try:
+                    c = char.decode('utf-8', errors='ignore')
+                except:
+                    continue
+                
+                if c == '\r' or c == '\n':
+                    line = last_status_line.strip()
+                    if line:
+                        # 打印当前行，使用 \r 覆盖
+                        print(f"\r{line.ljust(100)}", end="", flush=True)
+                        error_output.append(line)
+                        if "time=" in line or "speed=" in line:
+                            final_status = line
+                    last_status_line = ""
+                else:
+                    last_status_line += c
+        
+        # 确保最后一行也被处理
+        line = last_status_line.strip()
+        if line:
+            print(f"\r{line.ljust(100)}", end="", flush=True)
+            error_output.append(line)
+            if "time=" in line or "speed=" in line:
+                final_status = line
+            
+        print() # 换行，避免后续日志覆盖
+        
+        process.wait()
         elapsed_time = time.time() - start_time
         
         if process.returncode == 0:
-            # 计算转码速度
-            speed = duration / elapsed_time if elapsed_time > 0 else 0
             logger.info(f"转码成功: {filepath} -> {out_filepath}")
-            logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s，转码速度: {speed:.2f}X。")
+            if final_status:
+                logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s，最终状态: {final_status}")
+            else:
+                logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s")
             
             # 移动源文件到目录 C
             shutil.move(filepath, done_filepath)
@@ -61,7 +102,7 @@ def process_file(filepath, task, state_manager, logger):
             # 清理目录 A 中的空文件夹
             clean_empty_dirs(monitor_dir)
         else:
-            error_msg = process.stderr.decode('utf-8', errors='ignore')
+            error_msg = "\n".join(error_output[-20:]) # 只取最后20行错误信息
             logger.error(f"转码失败: {filepath}\n错误内容: {error_msg}")
             
             # 增加失败次数
