@@ -42,36 +42,9 @@ def process_file(filepath, task, state_manager, logger):
     
     start_time = time.time()
     try:
-        import sys
-        # 执行命令，将 stderr 重定向到 stdout 以便统一读取
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        
-        output_buffer = []
-        lines_printed = 0
-        
-        while True:
-            chunk = process.stdout.read(1024)
-            if not chunk:
-                break
-            chunk_str = chunk.decode('utf-8', errors='replace')
-            output_buffer.append(chunk_str)
-            
-            # 实时打印到终端，不记录到日志
-            sys.stdout.write(chunk_str)
-            sys.stdout.flush()
-            
-            # 统计换行符数量，用于后续清理
-            lines_printed += chunk_str.count('\n')
-            
-        process.wait()
+        # 执行命令
+        process = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         elapsed_time = time.time() - start_time
-        
-        # 处理完成后，清除 FFmpeg 输出的信息，保持终端整洁
-        # \r 回到行首，\033[K 清除当前行
-        # \033[F 回到上一行，\033[K 清除该行
-        clear_cmd = '\r\033[K' + '\033[F\033[K' * lines_printed
-        sys.stdout.write(clear_cmd)
-        sys.stdout.flush()
         
         if process.returncode == 0:
             # 计算转码速度
@@ -88,7 +61,7 @@ def process_file(filepath, task, state_manager, logger):
             # 清理目录 A 中的空文件夹
             clean_empty_dirs(monitor_dir)
         else:
-            error_msg = "".join(output_buffer)
+            error_msg = process.stderr.decode('utf-8', errors='ignore')
             logger.error(f"转码失败: {filepath}\n错误内容: {error_msg}")
             
             # 增加失败次数

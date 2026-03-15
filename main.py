@@ -58,10 +58,6 @@ def run_task(task, state_manager, logger):
     return True
 
 def main():
-    # 启用 Windows 终端的 ANSI 转义序列支持
-    if os.name == 'nt':
-        os.system('')
-
     # 尝试获取文件锁
     lock_fd = acquire_lock()
     
