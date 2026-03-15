@@ -90,7 +90,7 @@ def process_file(filepath, task, state_manager, logger):
         
         if process.returncode == 0:
             out_rel_path = os.path.relpath(out_filepath, monitor_dir)
-            logger.info(f"转码成功: {rel_path} -> {out_rel_path}")
+            logger.info(f"转码成功。")
             if final_status:
                 logger.info(f"FFmpeg 运行报告: {final_status}")
             
@@ -104,7 +104,7 @@ def process_file(filepath, task, state_manager, logger):
             clean_empty_dirs(monitor_dir)
         else:
             error_msg = "\n".join(error_output[-20:]) # 只取最后20行错误信息
-            logger.error(f"转码失败: {filepath}\n错误内容: {error_msg}")
+            logger.error(f"转码失败，原因: {error_msg}")
             
             # 增加失败次数
             state_manager.increment_failure(filepath)
@@ -114,5 +114,5 @@ def process_file(filepath, task, state_manager, logger):
                 os.remove(out_filepath)
                 
     except Exception as e:
-        logger.error(f"未知失败: {filepath}: {e}")
+        logger.error(f"未知失败，原因: {e}")
         state_manager.increment_failure(filepath)
