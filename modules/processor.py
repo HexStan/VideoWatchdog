@@ -64,10 +64,11 @@ def process_file(filepath, task, state_manager, logger):
                 if c == '\r' or c == '\n':
                     line = last_status_line.strip()
                     if line:
-                        # 打印当前行，使用 \r 覆盖
-                        print(f"\r{line.ljust(100)}", end="", flush=True)
                         error_output.append(line)
+                        # 只打印包含进度信息的行
                         if "time=" in line or "speed=" in line:
+                            # 打印当前行，使用 \r 覆盖
+                            print(f"\r{line.ljust(100)}", end="", flush=True)
                             final_status = line
                     last_status_line = ""
                 else:
@@ -76,12 +77,13 @@ def process_file(filepath, task, state_manager, logger):
         # 确保最后一行也被处理
         line = last_status_line.strip()
         if line:
-            print(f"\r{line.ljust(100)}", end="", flush=True)
             error_output.append(line)
             if "time=" in line or "speed=" in line:
+                print(f"\r{line.ljust(100)}", end="", flush=True)
                 final_status = line
             
-        print() # 换行，避免后续日志覆盖
+        if final_status:
+            print() # 换行，避免后续日志覆盖
         
         process.wait()
         elapsed_time = time.time() - start_time
@@ -90,9 +92,7 @@ def process_file(filepath, task, state_manager, logger):
             out_rel_path = os.path.relpath(out_filepath, monitor_dir)
             logger.info(f"转码成功: {rel_path} -> {out_rel_path}")
             if final_status:
-                logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s，最终状态: {final_status}")
-            else:
-                logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s")
+                logger.info(f"FFmpeg 运行报告: {final_status}")
             
             # 移动源文件到目录 C
             shutil.move(filepath, done_filepath)
