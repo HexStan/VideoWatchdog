@@ -64,7 +64,7 @@ def main():
     lock_fd = acquire_lock()
     
     try:
-        # 加载配置
+        # 加载配置，示例配置文件为 config.toml.example
         config = Config("config.toml")
         config.validate()
     except Exception as e:
