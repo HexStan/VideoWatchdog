@@ -8,8 +8,8 @@ def setup_logger(log_dir="logs", max_log_files=7):
         os.makedirs(log_dir)
 
     # 日志以日期命名
-    date_str = datetime.now().strftime("%Y-%m-%d")
-    log_file = os.path.join(log_dir, f"videowatchdog_{date_str}.log")
+    date_str = datetime.now().strftime("%Y%m%d")
+    log_file = os.path.join(log_dir, f"videowatchdog-{date_str}.log")
 
     logger = logging.getLogger("VideoWatchdog")
     logger.setLevel(logging.INFO)
@@ -39,15 +39,15 @@ def setup_logger(log_dir="logs", max_log_files=7):
 
 def _cleanup_old_logs(log_dir, max_log_files):
     try:
-        log_files = glob.glob(os.path.join(log_dir, "videowatchdog_*.log"))
+        log_files = glob.glob(os.path.join(log_dir, "videowatchdog-*.log"))
         
         # 提取文件名中的日期并排序
         def get_date_from_filename(filepath):
             filename = os.path.basename(filepath)
-            # 假设文件名格式为 videowatchdog_YYYY-MM-DD.log
+            # 假设文件名格式为 videowatchdog-YYYYMMDD.log
             try:
-                date_str = filename.replace("videowatchdog_", "").replace(".log", "")
-                return datetime.strptime(date_str, "%Y-%m-%d")
+                date_str = filename.replace("videowatchdog-", "").replace(".log", "")
+                return datetime.strptime(date_str, "%Y%m%d")
             except ValueError:
                 # 如果解析失败，返回一个很早的时间
                 return datetime.min
