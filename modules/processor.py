@@ -35,7 +35,9 @@ def process_file(filepath, task, state_manager, logger):
     duration = get_video_duration(filepath)
     
     # 构造 FFmpeg 命令
-    cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
+    raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
+    # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
+    cmd = raw_cmd.replace('\n', ' ').replace('\r', ' ')
     logger.info(f"开始转码: {filepath}")
     
     start_time = time.time()

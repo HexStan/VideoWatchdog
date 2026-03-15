@@ -38,7 +38,15 @@ stable_duration = 5
 max_retries = 3
 
 # 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径
-ffmpeg_cmd = "ffmpeg -y -i \"{input}\" -c:v libx264 -preset fast -crf 23 \"{output}\""
+# 支持多行命令，执行时会自动合并为单行
+ffmpeg_cmd = """
+ffmpeg -y \
+  -i "{input}" \
+  -c:v libx264 \
+  -preset fast \
+  -crf 23 \
+  "{output}"
+"""
 
 # 输出文件名的后缀
 suffix = "encoded"
@@ -58,6 +66,12 @@ format = "mp4"
 # file_mtime = 0
 # stable_duration = 0
 # max_retries = 1
-# ffmpeg_cmd = "ffmpeg -y -i \"{input}\" -c:a aac -b:a 128k \"{output}\""
+# ffmpeg_cmd = """
+# ffmpeg -y \
+#   -i "{input}" \
+#   -c:a aac \
+#   -b:a 128k \
+#   "{output}"
+# """
 # suffix = "audio"
 # format = "mp3"
