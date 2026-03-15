@@ -53,8 +53,6 @@ def run_task(task, state_manager, logger):
     
     # 逐个处理文件
     for filepath in files:
-        rel_path = os.path.relpath(filepath, monitor_dir)
-        logger.info(f"【{task_name}】监测到新文件 {rel_path}")
         process_file(filepath, task, state_manager, logger)
         
     return True

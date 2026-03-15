@@ -51,6 +51,12 @@ def scan_directory(task, state_manager, logger):
             except OSError as e:
                 logger.error(f"读取文件失败: {filepath}\n错误内容: {e}")
 
+    task_name = task.get('name', 'unnamed')
+    if candidates:
+        for filepath, _ in candidates:
+            rel_path = os.path.relpath(filepath, monitor_dir)
+            logger.info(f"【{task_name}】监测到新文件: {rel_path}")
+
     # 等待 Z 秒后检查文件大小是否变化
     if stable_duration > 0 and candidates:
         logger.info(f"正在检查 {stable_duration} 秒内的文件大小稳定性。")
