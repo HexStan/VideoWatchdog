@@ -32,22 +32,26 @@ def acquire_lock():
         print("另一个实例正在运行，已退出。")
         sys.exit(1)
 
-def run_task(task, state_manager, logger):
+def run_task(task, state_manager, logger, is_first_run=False):
     """
     执行单个任务的扫描和处理流程
     """
-    logger.info(f"正在执行任务: {task.get('name', 'unnamed')}")
-    
     # 扫描目录获取符合条件的文件
     files = scan_directory(task, state_manager, logger)
     
     if not files:
-        logger.info(f"任务中没有待处理的文件: {task.get('name', 'unnamed')}")
-        return
+        if is_first_run:
+            logger.info(f"任务中没有待处理的文件: {task.get('name', 'unnamed')}")
+        return False
 
+    logger.info(f"正在执行任务: {task.get('name', 'unnamed')}")
+    
     # 逐个处理文件
     for filepath in files:
+        logger.info(f"检测到文件变动: {filepath}")
         process_file(filepath, task, state_manager, logger)
+        
+    return True
 
 def main():
     # 尝试获取文件锁
@@ -81,7 +85,7 @@ def main():
     if all_once:
         logger.info("由于扫描间隔为 0，作为一次性任务执行。")
         for task in tasks:
-            run_task(task, state_manager, logger)
+            run_task(task, state_manager, logger, is_first_run=True)
         logger.info("所有任务完成，退出中……")
     else:
         # 记录每个任务上次运行的时间
@@ -97,11 +101,12 @@ def main():
                     if interval == 0:
                         # 一次性任务只在第一次循环时运行
                         if last_run[i] == 0:
-                            run_task(task, state_manager, logger)
+                            run_task(task, state_manager, logger, is_first_run=True)
                             last_run[i] = current_time
                     elif current_time - last_run[i] >= interval:
                         # 周期性任务达到间隔时间后运行
-                        run_task(task, state_manager, logger)
+                        is_first = last_run[i] == 0
+                        run_task(task, state_manager, logger, is_first_run=is_first)
                         last_run[i] = time.time()
                         
                 # 避免 CPU 占用过高

@@ -12,7 +12,12 @@ def scan_directory(task, state_manager, logger):
 
     valid_files = []
     if not os.path.exists(monitor_dir):
-        logger.warning(f"目录不存在: {monitor_dir}")
+        # 只有在第一次运行时才输出警告，避免重复日志
+        if not hasattr(scan_directory, '_warned_dirs'):
+            scan_directory._warned_dirs = set()
+        if monitor_dir not in scan_directory._warned_dirs:
+            logger.warning(f"目录不存在: {monitor_dir}")
+            scan_directory._warned_dirs.add(monitor_dir)
         return valid_files
 
     current_time = time.time()
