@@ -14,7 +14,7 @@ state_file = "state.json"
 # 允许配置多组任务，这里是第一组任务
 [[tasks]]
 
-name = "task_1"
+name = "Task 1"
 
 # 指定监控目录 (待处理目录)
 monitor_dir = "./input"
@@ -58,7 +58,7 @@ format = "mp4"
 
 # 第二组任务示例 (可选)
 # [[tasks]]
-# name = "task_2"
+# name = "Task 2"
 # dir_a = "./input2"
 # dir_b = "./output2"
 # dir_c = "./done2"
