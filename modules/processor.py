@@ -38,7 +38,7 @@ def process_file(filepath, task, state_manager, logger):
     raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace('\n', ' ').replace('\r', ' ')
-    logger.info(f"开始转码: {filepath}")
+    logger.info(f"开始转码: {rel_path}")
     
     start_time = time.time()
     try:
@@ -87,7 +87,8 @@ def process_file(filepath, task, state_manager, logger):
         elapsed_time = time.time() - start_time
         
         if process.returncode == 0:
-            logger.info(f"转码成功: {filepath} -> {out_filepath}")
+            out_rel_path = os.path.relpath(out_filepath, monitor_dir)
+            logger.info(f"转码成功: {rel_path} -> {out_rel_path}")
             if final_status:
                 logger.info(f"视频时长: {duration:.2f}s，转码耗时: {elapsed_time:.2f}s，最终状态: {final_status}")
             else:
