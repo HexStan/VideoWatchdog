@@ -26,7 +26,7 @@ class Config:
             raise ValueError("配置文件中没有任何任务。")
         
         for i, task in enumerate(self.tasks):
-            required_keys = ['monitor_dir', 'output_dir', 'processed_dir', 'ffmpeg_cmd', 'suffix', 'output_format']
+            required_keys = ['monitor_dir', 'output_dir', 'processed_dir', 'ffmpeg_cmd']
             for key in required_keys:
                 if key not in task:
                     raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
@@ -36,10 +36,12 @@ class Config:
             task.setdefault('file_mtime', 0)
             task.setdefault('stable_duration', 0)
             task.setdefault('max_retries', 3)
-            task.setdefault('name', f"task_{i}")
+            task.setdefault('name', f"Task {i}")
             task.setdefault('input_formats', ['mp4'])
+            task.setdefault('output_format', 'mp4')
+            task.setdefault('suffix', "")
             
-            # 确保 input_formats 以点开头
+            # 确保 input_formats 具有前导点
             task['input_formats'] = [ext if ext.startswith('.') else f".{ext}" for ext in task['input_formats']]
 
         return True
