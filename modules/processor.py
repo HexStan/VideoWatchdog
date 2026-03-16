@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 import shutil
-from modules.utils import get_video_duration, clean_empty_dirs
+from modules.utils import clean_empty_dirs
 
 def process_file(filepath, task, state_manager, logger):
     """
@@ -32,7 +32,7 @@ def process_file(filepath, task, state_manager, logger):
     os.makedirs(done_dir, exist_ok=True)
     
     # 获取视频时长
-    duration = get_video_duration(filepath)
+    # duration = get_video_duration(filepath)
     
     # 构造 FFmpeg 命令
     raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
