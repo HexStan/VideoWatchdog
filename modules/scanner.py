@@ -57,20 +57,7 @@ def scan_directory(task, state_manager, logger):
             rel_path = os.path.relpath(filepath, monitor_dir)
             logger.info(f"【{task_name}】监测到新文件: {rel_path}")
 
-    # 等待 Z 秒后检查文件大小是否变化
-    if stable_duration > 0 and candidates:
-        logger.info(f"正在检查 {stable_duration} 秒内的文件大小稳定性。")
-        time.sleep(stable_duration)
-        
-        for filepath, old_size in candidates:
-            try:
-                new_size = os.path.getsize(filepath)
-                if new_size == old_size:
-                    valid_files.append(filepath)
-            except OSError:
-                pass
-    else:
-        # 如果 Z == 0，直接将所有候选文件视为有效
-        valid_files = [c[0] for c in candidates]
+    # 直接将所有候选文件视为有效，稳定性检测移至处理前
+    valid_files = [c[0] for c in candidates]
 
     return valid_files

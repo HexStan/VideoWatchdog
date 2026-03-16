@@ -11,11 +11,38 @@ def process_file(filepath, task, state_manager, logger):
     处理单个文件：执行 FFmpeg，移动文件，记录日志和状态
     """
     monitor_dir = task['monitor_dir']
-    output_dir = task['output_dir']
-    processed_dir = task['processed_dir']
     
     # 计算相对路径以保持目录结构
     rel_path = os.path.relpath(filepath, monitor_dir)
+    
+    # 在处理前等待 stable_duration 秒，检查文件大小是否稳定
+    stable_duration = task.get('stable_duration', 0)
+    if stable_duration > 0:
+        try:
+            old_size = os.path.getsize(filepath)
+        except OSError:
+            logger.warning(f"文件已不存在，跳过处理。")
+            return
+            
+        logger.info(f"正在检查 {rel_path} 在 {stable_duration} 秒内的文件大小稳定性……")
+        time.sleep(stable_duration)
+        
+        try:
+            new_size = os.path.getsize(filepath)
+            if new_size != old_size:
+                logger.info(f"文件大小正在变化，跳过本次处理。")
+                return
+        except OSError:
+            logger.warning(f"文件已不存在，跳过处理。")
+            return
+    else:
+        if not os.path.exists(filepath):
+            logger.warning(f"文件已不存在，跳过处理。")
+            return
+
+    output_dir = task['output_dir']
+    processed_dir = task['processed_dir']
+    
     rel_dir = os.path.dirname(rel_path)
     filename = os.path.basename(filepath)
     name, _ = os.path.splitext(filename)
