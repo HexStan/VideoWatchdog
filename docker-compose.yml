@@ -1,31 +1,30 @@
-version: '3.8'
-
 services:
   video-watchdog:
     image: hexstan/video-watchdog:latest
-    build: .
+    # build: .
     container_name: video-watchdog
     restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
-      # 确保 Python 输出不被缓冲，实时显示在日志中
-      - PYTHONUNBUFFERED=1
+    
     volumes:
-      # 挂载配置文件和日志目录
+      # 配置文件和日志目录
       - ./config.toml:/app/config.toml
       - ./logs:/app/logs
-      # 挂载需要监控和处理的目录（请根据实际情况修改）
-      - /path/to/monitor:/path/to/monitor
-      - /path/to/output:/path/to/output
-      - /path/to/processed:/path/to/processed
+
+      # 需要监控和处理的目录
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./processed:/app/processed
+    
     # 启用 Intel/AMD GPU 支持 (VAAPI/QSV)
     devices:
       - /dev/dri:/dev/dri
     # 启用 NVIDIA GPU 支持
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu, video, compute, utility]
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu, video, compute, utility]

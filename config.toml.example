@@ -20,7 +20,7 @@ monitor_dir = "./input"
 output_dir = "./output"
 
 # 指定处理完成后的源文件移动目录，必填
-processed_dir = "./done"
+processed_dir = "./processed"
 
 # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
 input_formats = ["mp4", "mkv", "avi"]
