@@ -1,4 +1,4 @@
-FROM python:3.11-slim-bookworm
+FROM python:3.14-slim-trixie
 
 # 设置环境变量，确保 Python 输出不被缓冲，以便日志能实时显示
 ENV PYTHONUNBUFFERED=1
