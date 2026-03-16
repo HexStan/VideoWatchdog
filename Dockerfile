@@ -11,16 +11,21 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
     fi
 
 # 安装 FFmpeg 和硬件加速驱动
-# intel-media-va-driver-non-free: Intel QSV/VAAPI
+# intel-media-va-driver-non-free: Intel QSV/VAAPI (仅 amd64)
 # mesa-va-drivers: AMD VAAPI
-# nvidia-vaapi-driver: NVIDIA VAAPI
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# nvidia-vaapi-driver: NVIDIA VAAPI (仅 amd64)
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     ffmpeg \
     vainfo \
-    intel-media-va-driver-non-free \
-    mesa-va-drivers \
-    nvidia-vaapi-driver \
-    && rm -rf /var/lib/apt/lists/*
+    mesa-va-drivers && \
+    ARCH=$(dpkg --print-architecture) && \
+    if [ "$ARCH" = "amd64" ]; then \
+        apt-get install -y --no-install-recommends \
+        intel-media-va-driver-non-free \
+        nvidia-vaapi-driver; \
+    fi && \
+    rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app
