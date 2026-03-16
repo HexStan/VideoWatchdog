@@ -78,7 +78,7 @@ def main():
     )
     
     # 初始化状态管理器
-    state_manager = StateManager(global_cfg.get('state_file', 'logs/state.json'))
+    state_manager = StateManager("logs/state.json")
     tasks = config.tasks
     
     logger.info("VideoWatchdog 已启动。")

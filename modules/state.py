@@ -4,6 +4,12 @@ import os
 class StateManager:
     def __init__(self, state_file="logs/state.json"):
         self.state_file = state_file
+        
+        # 确保状态文件所在的目录存在
+        state_dir = os.path.dirname(self.state_file)
+        if state_dir:
+            os.makedirs(state_dir, exist_ok=True)
+        
         self.state = self._load()
 
     def _load(self):
