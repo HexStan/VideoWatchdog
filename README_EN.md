@@ -4,6 +4,10 @@ English | [中文](README.md)
 
 **VideoWatchdog** is a lightweight, Python-based automation tool designed to monitor specified directories for video files and automatically process them using FFmpeg once they are fully written. It is ideal for scenarios requiring automated video transcoding, compression, or format conversion.
 
+## 💡 Inspiration & Background
+
+This project is inspired by the `autovideoconverter` feature in the `jlesage/docker-handbrake` project, borrowing its core logic. I developed this project because HandBrake has poor support for VAAPI and AMD GPU proprietary drivers on Linux.
+
 ## ✨ Features
 
 - **Directory Monitoring**: Supports continuous directory monitoring or running as a one-off script.

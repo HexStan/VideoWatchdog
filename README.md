@@ -4,6 +4,10 @@
 
 **VideoWatchdog** 是一个基于 Python 的轻量级自动化工具，用于监控指定目录中的视频文件，并在文件写入完成后自动调用 FFmpeg 进行处理。它非常适合需要自动化视频转码、压缩或格式转换的场景。
 
+## 💡 启发与背景
+
+该项目受到 `jlesage/docker-handbrake` 项目中的 `autovideoconverter` 功能的启发，借鉴了其核心逻辑。由于 HandBrake 对于 Linux 上 VAAPI 和 AMD GPU 私有驱动的支持不佳，所以我开发了此项目。
+
 ## ✨ 特性
 
 - **目录监控**：支持持续监控目录或作为一次性脚本运行。
@@ -28,18 +32,15 @@
    git clone https://github.com/yourusername/VideoWatchdog.git
    cd VideoWatchdog
    ```
-
 2. **安装 Python 依赖**
    ```bash
    pip install -r requirements.txt
    ```
-
 3. **准备配置文件**
    将示例配置文件复制为正式配置文件，并根据需要进行修改：
    ```bash
    cp config.toml.example config.toml
    ```
-
 4. **运行程序**
    ```bash
    python main.py
@@ -51,7 +52,6 @@
    ```bash
    cp config.toml.example config.toml
    ```
-
 2. **使用 Docker Compose 启动**
    ```bash
    docker-compose up -d
