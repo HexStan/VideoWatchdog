@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import subprocess
 import shutil
@@ -48,6 +49,8 @@ def process_file(filepath, task, state_manager, logger):
         last_status_line = ""
         error_output = []
         final_status = ""
+        last_print_time = 0
+        is_tty = sys.stdout.isatty()
         
         # 实时读取 stderr
         while True:
@@ -67,8 +70,15 @@ def process_file(filepath, task, state_manager, logger):
                         error_output.append(line)
                         # 只打印包含进度信息的行
                         if "time=" in line or "speed=" in line:
-                            # 打印当前行，使用 \r 覆盖
-                            print(f"\r{line.ljust(100)}", end="", flush=True)
+                            current_time = time.time()
+                            if is_tty:
+                                # TTY 环境下使用 \r 覆盖当前行
+                                print(f"\r{line.ljust(100)}", end="", flush=True)
+                            else:
+                                # 非 TTY 环境（如 Docker 默认日志），每 5 秒打印一次并换行，避免日志缓冲不显示和刷屏
+                                if current_time - last_print_time >= 5.0:
+                                    print(line, flush=True)
+                                    last_print_time = current_time
                             final_status = line
                     last_status_line = ""
                 else:
@@ -79,10 +89,13 @@ def process_file(filepath, task, state_manager, logger):
         if line:
             error_output.append(line)
             if "time=" in line or "speed=" in line:
-                print(f"\r{line.ljust(100)}", end="", flush=True)
+                if is_tty:
+                    print(f"\r{line.ljust(100)}", end="", flush=True)
+                else:
+                    print(line, flush=True)
                 final_status = line
             
-        if final_status:
+        if final_status and is_tty:
             print() # 换行，避免后续日志覆盖
         
         process.wait()
