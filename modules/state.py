@@ -2,7 +2,7 @@ import json
 import os
 
 class StateManager:
-    def __init__(self, state_file="state.json"):
+    def __init__(self, state_file="logs/state.json"):
         self.state_file = state_file
         self.state = self._load()
 

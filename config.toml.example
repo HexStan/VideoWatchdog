@@ -7,7 +7,7 @@ max_log_files = 7
 log_dir = "logs"
 
 # 状态持久化文件路径
-state_file = "state.json"
+state_file = "logs/state.json"
 
 # ==================================================
 
