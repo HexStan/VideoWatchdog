@@ -6,7 +6,7 @@ English | [中文](README.md)
 
 ## 💡 Inspiration & Background
 
-This project is inspired by the `autovideoconverter` feature in the `jlesage/docker-handbrake` project, borrowing its core logic. I developed this project because HandBrake has poor support for VAAPI and AMD GPU proprietary drivers on Linux.
+This project is inspired by the `autovideoconverter` feature in the [jlesage/docker-handbrake](https://github.com/jlesage/docker-handbrake) project, borrowing its core logic. I developed this project because HandBrake has poor support for VAAPI and AMD GPU proprietary drivers on Linux.
 
 ## ✨ Features
 
