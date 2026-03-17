@@ -145,7 +145,7 @@ def process_file(filepath, task, state_manager, logger):
             clean_empty_dirs(monitor_dir)
         else:
             error_msg = "\n".join(error_output[-20:]) # 只取最后20行错误信息
-            logger.error(f"转码失败，原因: {error_msg}")
+            logger.error(f"转码失败，原因:\n{error_msg}")
             
             # 增加失败次数
             state_manager.increment_failure(filepath)
@@ -155,5 +155,5 @@ def process_file(filepath, task, state_manager, logger):
                 os.remove(out_filepath)
                 
     except Exception as e:
-        logger.error(f"未知失败，原因: {e}")
+        logger.error(f"未知失败，原因:\n{e}")
         state_manager.increment_failure(filepath)

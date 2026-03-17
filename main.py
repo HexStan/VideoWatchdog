@@ -66,7 +66,7 @@ def main():
         config = Config("config.toml")
         config.validate()
     except Exception as e:
-        print(f"加载配置失败，原因: {e}")
+        print(f"加载配置失败，原因:\n{e}")
         sys.exit(1)
         
     global_cfg = config.global_config
