@@ -45,7 +45,7 @@ def run_task(task, state_manager, logger):
     
     if not files:
         if not task.get('is_monitoring', False):
-            logger.info(f"【{task_name}】正在以{interval}秒的间隔持续监控 {monitor_dir}")
+            logger.info(f"【{task_name}】正在以 {interval} 秒的间隔持续监控 {monitor_dir}")
             task['is_monitoring'] = True
         return False
 
@@ -66,7 +66,7 @@ def main():
         config = Config("config.toml")
         config.validate()
     except Exception as e:
-        print(f"加载配置失败: {e}")
+        print(f"加载配置失败，原因: {e}")
         sys.exit(1)
         
     global_cfg = config.global_config

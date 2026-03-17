@@ -7,7 +7,6 @@ def scan_directory(task, state_manager, logger):
     """
     monitor_dir = task['monitor_dir']
     file_mtime = task.get('file_mtime', 0)
-    stable_duration = task.get('stable_duration', 0)
     max_retries = task.get('max_retries', 3)
     input_formats = task.get('input_formats', ['.mp4'])
 
@@ -43,13 +42,13 @@ def scan_directory(task, state_manager, logger):
                 stat = os.stat(filepath)
                 mtime = stat.st_mtime
                 
-                # 检查修改时间是否久于 Y 秒
+                # 检查修改时间是否久于 file_mtime
                 if file_mtime > 0 and (current_time - mtime) < file_mtime:
                     continue
                     
                 candidates.append((filepath, stat.st_size))
             except OSError as e:
-                logger.error(f"读取文件失败: {filepath}\n错误内容: {e}")
+                logger.error(f"读取文件失败: {filepath}\n{e}")
 
     task_name = task.get('name', 'unnamed')
     if candidates:
@@ -57,7 +56,7 @@ def scan_directory(task, state_manager, logger):
             rel_path = os.path.relpath(filepath, monitor_dir)
             logger.info(f"【{task_name}】监测到新文件: {rel_path}")
 
-    # 直接将所有候选文件视为有效，稳定性检测移至处理前
+    # 将所有候选文件视为有效
     valid_files = [c[0] for c in candidates]
 
     return valid_files
