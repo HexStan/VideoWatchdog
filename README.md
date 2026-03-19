@@ -39,7 +39,7 @@
 3. **准备配置文件**
    将示例配置文件复制为正式配置文件，并根据需要进行修改：
    ```bash
-   cp config.toml.example config.toml
+   cp config/config.toml.example config/config.toml
    ```
 4. **运行程序**
    ```bash
@@ -50,7 +50,7 @@
 
 1. **准备配置文件**
    ```bash
-   cp config.toml.example config.toml
+   cp config/config.toml.example config/config.toml
    ```
 2. **使用 Docker Compose 启动**
    ```bash
@@ -59,7 +59,7 @@
 
 ## ⚙️ 配置说明
 
-项目使用 TOML 格式进行配置，核心配置文件为 `config.toml`。以下是主要配置项说明：
+项目使用 TOML 格式进行配置，核心配置文件为 `config/config.toml`。以下是主要配置项说明：
 
 ```toml
 [global]

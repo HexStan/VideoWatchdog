@@ -9,7 +9,7 @@ services:
     
     volumes:
       # 配置文件和日志目录
-      - ./config.toml:/app/config.toml
+      - ./config:/app/config
       - ./logs:/app/logs
 
       # 需要监控和处理的目录

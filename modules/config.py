@@ -2,7 +2,7 @@ import os
 import toml
 
 class Config:
-    def __init__(self, config_path="config.toml"):
+    def __init__(self, config_path="config/config.toml"):
         self.config_path = config_path
         self.data = self._load_config()
 

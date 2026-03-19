@@ -62,8 +62,8 @@ def main():
     lock_fd = acquire_lock()
     
     try:
-        # 加载配置，示例配置文件为 config.toml.example
-        config = Config("config.toml")
+        # 加载配置，示例配置文件为 config/config.toml.example
+        config = Config("config/config.toml")
         config.validate()
     except Exception as e:
         print(f"加载配置失败，原因:\n{e}")

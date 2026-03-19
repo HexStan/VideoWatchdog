@@ -41,7 +41,7 @@ This project is inspired by the `autovideoconverter` feature in the [jlesage/doc
 3. **Prepare Configuration File**
    Copy the example configuration file and modify it as needed:
    ```bash
-   cp config.toml.example config.toml
+   cp config/config.toml.example config/config.toml
    ```
 
 4. **Run the Program**
@@ -53,7 +53,7 @@ This project is inspired by the `autovideoconverter` feature in the [jlesage/doc
 
 1. **Prepare Configuration File**
    ```bash
-   cp config.toml.example config.toml
+   cp config/config.toml.example config/config.toml
    ```
 
 2. **Start with Docker Compose**
@@ -63,7 +63,7 @@ This project is inspired by the `autovideoconverter` feature in the [jlesage/doc
 
 ## ⚙️ Configuration Guide
 
-The project uses the TOML format for configuration, with the core configuration file being `config.toml`. Below are the main configuration options:
+The project uses the TOML format for configuration, with the core configuration file being `config/config.toml`. Below are the main configuration options:
 
 ```toml
 [global]
