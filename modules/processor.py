@@ -131,9 +131,12 @@ def process_file(filepath, task, state_manager, logger):
         
         if process.returncode == 0:
             out_rel_path = os.path.relpath(out_filepath, monitor_dir)
-            logger.info(f"转码成功。")
+            logger.info(f"转码成功，耗时 {humanfriendly.format_timespan(elapsed_time)}。")
             if final_status:
                 logger.info(f"FFmpeg 运行报告: {final_status}")
+            
+            # 确保目标目录存在（防止在转码过程中，目录被外部操作意外删除）
+            os.makedirs(done_dir, exist_ok=True)
             
             # 移动源文件到目录 C
             shutil.move(filepath, done_filepath)
