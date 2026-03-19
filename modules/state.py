@@ -30,11 +30,34 @@ class StateManager:
 
     def get_failures(self, filepath):
         """获取指定文件的失败次数"""
-        return self.state.get(filepath, 0)
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            return val
+        return val.get("failures", 0)
+
+    def get_ffmpeg_failures(self, filepath):
+        """获取指定文件的 FFmpeg 失败次数"""
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            return 0
+        return val.get("ffmpeg_failures", 0)
 
     def increment_failure(self, filepath):
         """增加指定文件的失败次数并持久化"""
-        self.state[filepath] = self.state.get(filepath, 0) + 1
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            val = {"failures": val, "ffmpeg_failures": 0}
+        val["failures"] = val.get("failures", 0) + 1
+        self.state[filepath] = val
+        self._save()
+
+    def increment_ffmpeg_failure(self, filepath):
+        """增加指定文件的 FFmpeg 失败次数并持久化"""
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            val = {"failures": val, "ffmpeg_failures": 0}
+        val["ffmpeg_failures"] = val.get("ffmpeg_failures", 0) + 1
+        self.state[filepath] = val
         self._save()
 
     def reset_failure(self, filepath):

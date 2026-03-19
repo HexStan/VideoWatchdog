@@ -79,7 +79,8 @@ input_formats = ["mp4", "mkv"]   # File formats to monitor
 scan_interval = 60               # Scan interval in seconds (set to 0 to run as a one-off task)
 file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds
-max_retries = 3                  # Maximum number of retries on failure
+failure_count = 3                # Maximum number of retries on failure
+fallback_count = 3               # Number of FFmpeg errors before falling back to ffmpeg_cmd_fallback
 
 # Custom FFmpeg command, {input} and {output} will be automatically replaced
 ffmpeg_cmd = """
@@ -90,6 +91,17 @@ ffmpeg -y \
   -crf 23 \
   "{output}"
 """
+
+# Fallback FFmpeg command, executed when ffmpeg_cmd fails fallback_count times
+ffmpeg_cmd_fallback = """
+ffmpeg -y \
+  -i "{input}" \
+  -c:v libx264 \
+  -preset medium \
+  -crf 28 \
+  "{output}"
+"""
+
 suffix = "encoded"               # Suffix appended to the output filename
 output_format = "mp4"            # Output file format
 ```

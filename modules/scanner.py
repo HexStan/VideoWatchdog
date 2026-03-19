@@ -7,7 +7,7 @@ def scan_directory(task, state_manager, logger):
     """
     monitor_dir = task['monitor_dir']
     file_mtime = task.get('file_mtime', 0)
-    max_retries = task.get('max_retries', 3)
+    failure_count = task.get('failure_count', 3)
     input_formats = task.get('input_formats', ['.mp4'])
 
     valid_files = []
@@ -35,7 +35,7 @@ def scan_directory(task, state_manager, logger):
             filepath = os.path.join(root, file)
             
             # 检查失败次数
-            if state_manager.get_failures(filepath) >= max_retries:
+            if state_manager.get_failures(filepath) >= failure_count:
                 continue
                 
             try:

@@ -62,11 +62,24 @@ def process_file(filepath, task, state_manager, logger):
     # 获取视频时长并格式化
     duration = humanfriendly.format_timespan(get_video_duration(filepath))
     
-    # 构造 FFmpeg 命令
-    raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
+    # 检查是否需要使用 fallback 命令
+    fallback_count = task.get('fallback_count', 0)
+    ffmpeg_cmd_fallback = task.get('ffmpeg_cmd_fallback', '')
+    
+    use_fallback = False
+    if fallback_count > 0 and ffmpeg_cmd_fallback:
+        if state_manager.get_ffmpeg_failures(filepath) >= fallback_count:
+            use_fallback = True
+
+    if use_fallback:
+        raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=out_filepath)
+        logger.info(f"使用 fallback 命令转码 {rel_path}，视频时长 {duration}。")
+    else:
+        raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
+        logger.info(f"开始转码 {rel_path}，视频时长 {duration}。")
+        
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace('\n', ' ').replace('\r', ' ')
-    logger.info(f"开始转码 {rel_path}，视频时长 {duration}。")
     
     start_time = time.time()
     try:
@@ -137,25 +150,31 @@ def process_file(filepath, task, state_manager, logger):
             # 确保目标目录存在
             os.makedirs(done_dir, exist_ok=True)
             
-            # 移动源文件到目录 C
+            # 移动源文件到 processed_dir
             shutil.move(filepath, done_filepath)
             
             # 重置失败记录
             state_manager.reset_failure(filepath)
             
-            # 清理目录 A 中的空文件夹
+            # 清理 monitor_dir 中的空文件夹
             clean_empty_dirs(monitor_dir)
         else:
             error_msg = "\n".join(error_output[-20:]) # 只取最后20行错误信息
             logger.error(f"转码失败，原因:\n{error_msg}")
             
             # 增加失败次数
-            state_manager.increment_failure(filepath)
+            if use_fallback:
+                state_manager.increment_failure(filepath)
+            else:
+                if fallback_count > 0 and ffmpeg_cmd_fallback:
+                    state_manager.increment_ffmpeg_failure(filepath)
+                else:
+                    state_manager.increment_failure(filepath)
             
             # 如果生成了不完整的输出文件，将其删除
             if os.path.exists(out_filepath):
                 os.remove(out_filepath)
                 
     except Exception as e:
-        logger.error(f"未知失败，原因:\n{e}")
+        logger.error(f"其他失败，原因:\n{e}")
         state_manager.increment_failure(filepath)

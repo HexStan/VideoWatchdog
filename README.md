@@ -75,7 +75,8 @@ input_formats = ["mp4", "mkv"]   # 监听的文件格式
 scan_interval = 60               # 扫描间隔（秒），设为 0 则作为一次性任务运行
 file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改
 stable_duration = 5              # 文件大小稳定检测时间（秒）
-max_retries = 3                  # 失败重试次数
+failure_count = 3                # 失败重试次数
+fallback_count = 3               # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
 
 # 自定义 FFmpeg 命令，{input} 和 {output} 会被自动替换
 ffmpeg_cmd = """
@@ -86,6 +87,17 @@ ffmpeg -y \
   -crf 23 \
   "{output}"
 """
+
+# 备用 FFMpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
+ffmpeg_cmd_fallback = """
+ffmpeg -y \
+  -i "{input}" \
+  -c:v libx264 \
+  -preset medium \
+  -crf 28 \
+  "{output}"
+"""
+
 suffix = "encoded"               # 输出文件名的追加后缀
 output_format = "mp4"            # 输出文件格式
 ```
