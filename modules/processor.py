@@ -56,9 +56,8 @@ def process_file(filepath, task, state_manager, logger):
     done_dir = os.path.join(processed_dir, rel_dir)
     done_filepath = os.path.join(done_dir, filename)
     
-    # 确保输出和完成目录存在
+    # 确保输出目录存在
     os.makedirs(out_dir, exist_ok=True)
-    os.makedirs(done_dir, exist_ok=True)
     
     # 获取视频时长并格式化
     duration = humanfriendly.format_timespan(get_video_duration(filepath))
