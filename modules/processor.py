@@ -134,7 +134,7 @@ def process_file(filepath, task, state_manager, logger):
             if final_status:
                 logger.info(f"FFmpeg 运行报告: {final_status}")
             
-            # 确保目标目录存在（防止在转码过程中，目录被外部操作意外删除）
+            # 确保目标目录存在
             os.makedirs(done_dir, exist_ok=True)
             
             # 移动源文件到目录 C
