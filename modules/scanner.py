@@ -1,6 +1,7 @@
 import os
 import time
 
+
 def scan_directory(task, state_manager, logger):
     """
     扫描目录，根据修改时间和大小变化筛选文件
@@ -33,19 +34,19 @@ def scan_directory(task, state_manager, logger):
                 continue
 
             filepath = os.path.join(root, file)
-            
+
             # 检查失败次数
             if state_manager.get_failures(filepath) >= failure_count:
                 continue
-                
+
             try:
                 stat = os.stat(filepath)
                 mtime = stat.st_mtime
-                
+
                 # 检查修改时间是否久于 file_mtime
                 if file_mtime > 0 and (current_time - mtime) < file_mtime:
                     continue
-                    
+
                 candidates.append((filepath, stat.st_size))
             except OSError as e:
                 logger.error(f"读取文件失败: {filepath}\n{e}")

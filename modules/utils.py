@@ -1,15 +1,16 @@
 import os
 import subprocess
 
+
 def get_video_duration(filepath):
     """
     使用 ffprobe 获取视频时长（秒）
     """
     cmd = [
-        "ffprobe", 
-        "-v", "error", 
-        "-show_entries", "format=duration", 
-        "-of", "default=noprint_wrappers=1:nokey=1", 
+        "ffprobe",
+        "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=noprint_wrappers=1:nokey=1",
         filepath
     ]
     try:
@@ -20,6 +21,7 @@ def get_video_duration(filepath):
         return 0.0
     except Exception:
         return 0.0
+
 
 def clean_empty_dirs(directory):
     """
@@ -33,7 +35,7 @@ def clean_empty_dirs(directory):
         # 不要删除根目录本身
         if os.path.abspath(dirpath) == os.path.abspath(directory):
             continue
-            
+
         # 如果目录为空（没有文件也没有子目录）
         if not os.listdir(dirpath):
             try:

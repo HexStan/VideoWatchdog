@@ -1,5 +1,7 @@
 import os
+
 import toml
+
 
 class Config:
     def __init__(self, config_path="config/config.toml"):
@@ -9,7 +11,7 @@ class Config:
     def _load_config(self):
         if not os.path.exists(self.config_path):
             raise FileNotFoundError(f"在 {self.config_path} 中找不到配置文件。")
-        
+
         with open(self.config_path, 'r', encoding='utf-8') as f:
             return toml.load(f)
 
@@ -24,13 +26,13 @@ class Config:
     def validate(self):
         if not self.tasks:
             raise ValueError("配置文件中没有任何任务。")
-        
+
         for i, task in enumerate(self.tasks):
             required_keys = ['monitor_dir', 'output_dir', 'processed_dir', 'ffmpeg_cmd']
             for key in required_keys:
                 if key not in task:
                     raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
-            
+
             # Set defaults for optional keys
             task.setdefault('scan_interval', 60)
             task.setdefault('file_mtime', 0)
@@ -42,7 +44,7 @@ class Config:
             task.setdefault('input_formats', ['mp4'])
             task.setdefault('output_format', 'mp4')
             task.setdefault('suffix', "")
-            
+
             # 确保 input_formats 具有前导点
             task['input_formats'] = [ext if ext.startswith('.') else f".{ext}" for ext in task['input_formats']]
 

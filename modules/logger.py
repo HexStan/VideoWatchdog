@@ -1,7 +1,8 @@
+import glob
 import logging
 import os
-import glob
 from datetime import datetime
+
 
 def setup_logger(log_dir="logs", max_log_files=7):
     if not os.path.exists(log_dir):
@@ -19,7 +20,7 @@ def setup_logger(log_dir="logs", max_log_files=7):
         # 文件输出
         fh = logging.FileHandler(log_file, encoding='utf-8')
         fh.setLevel(logging.INFO)
-        
+
         # 控制台输出
         ch = logging.StreamHandler()
         ch.setLevel(logging.INFO)
@@ -37,10 +38,11 @@ def setup_logger(log_dir="logs", max_log_files=7):
 
     return logger
 
+
 def _cleanup_old_logs(log_dir, max_log_files):
     try:
         log_files = glob.glob(os.path.join(log_dir, "videowatchdog-*.log"))
-        
+
         # 提取文件名中的日期并排序
         def get_date_from_filename(filepath):
             filename = os.path.basename(filepath)
@@ -54,7 +56,7 @@ def _cleanup_old_logs(log_dir, max_log_files):
 
         # 按日期排序，最旧的在前面
         log_files.sort(key=get_date_from_filename)
-        
+
         while len(log_files) > max_log_files:
             oldest_file = log_files.pop(0)
             try:
