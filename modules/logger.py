@@ -1,48 +1,34 @@
 import glob
 import logging
 import os
-from datetime import datetime, timedelta
-from logging.handlers import TimedRotatingFileHandler
+from datetime import datetime
 
 
-class CustomTimedRotatingFileHandler(TimedRotatingFileHandler):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # 设置自定义的命名函数
-        self.namer = self._custom_namer
+class DailyRotatingFileHandler(logging.FileHandler):
+    """
+    按天滚动的日志处理器，每天生成一个新的日志文件，并清理旧日志。
+    """
+    def __init__(self, log_dir, max_log_files, encoding='utf-8'):
+        self.log_dir = log_dir
+        self.max_log_files = max_log_files
+        self.current_date = datetime.now().strftime("%Y%m%d")
+        filename = os.path.join(log_dir, f"videowatchdog-{self.current_date}.log")
+        super().__init__(filename, encoding=encoding)
 
-    def _custom_namer(self, default_name):
-        # 将默认的 videowatchdog.log.20231024 转换为 videowatchdog-20231024.log
-        if ".log." in default_name:
-            name_part, date_part = default_name.rsplit(".log.", 1)
-            return f"{name_part}-{date_part}.log"
-        return default_name
-
-    def getFilesToDelete(self):
-        # 重写获取待删除文件的方法，以匹配自定义的文件名格式
-        dir_name = os.path.dirname(self.baseFilename)
-        base_name = os.path.basename(self.baseFilename)
-        
-        if base_name.endswith(".log"):
-            prefix = base_name[:-4] + "-"
-        else:
-            prefix = base_name + "-"
+    def emit(self, record):
+        new_date = datetime.now().strftime("%Y%m%d")
+        if new_date != self.current_date:
+            self.current_date = new_date
+            self.close()
+            filename = os.path.join(self.log_dir, f"videowatchdog-{self.current_date}.log")
+            self.baseFilename = os.path.abspath(filename)
+            self.stream = self._open()
             
-        file_names = os.listdir(dir_name)
-        result = []
-        for file_name in file_names:
-            if file_name.startswith(prefix) and file_name.endswith(".log"):
-                # 提取日期部分并验证
-                date_str = file_name[len(prefix):-4]
-                if len(date_str) == 8 and date_str.isdigit():
-                    result.append(os.path.join(dir_name, file_name))
-                    
-        result.sort()
-        if len(result) < self.backupCount:
-            result = []
-        else:
-            result = result[:len(result) - self.backupCount]
-        return result
+            # 日期变化时，执行旧日志清理
+            if self.max_log_files > 0:
+                _cleanup_old_logs(self.log_dir, self.max_log_files)
+                
+        super().emit(record)
 
 
 def setup_logger(log_dir="logs", max_log_files=7):
@@ -54,19 +40,8 @@ def setup_logger(log_dir="logs", max_log_files=7):
 
     # 避免重复添加 handler
     if not logger.handlers:
-        # 使用自定义的 TimedRotatingFileHandler 实现每天午夜自动轮转日志
-        # 当前正在写入的日志文件名为 videowatchdog.log
-        log_file = os.path.join(log_dir, "videowatchdog.log")
-        
-        fh = CustomTimedRotatingFileHandler(
-            filename=log_file,
-            when="midnight",
-            interval=1,
-            backupCount=max_log_files,
-            encoding='utf-8'
-        )
-        # 轮转后的历史日志文件后缀，例如 videowatchdog-20231024.log
-        fh.suffix = "%Y%m%d"
+        # 文件输出
+        fh = DailyRotatingFileHandler(log_dir, max_log_files, encoding='utf-8')
         fh.setLevel(logging.INFO)
 
         # 控制台输出
@@ -81,7 +56,7 @@ def setup_logger(log_dir="logs", max_log_files=7):
         logger.addHandler(fh)
         logger.addHandler(ch)
 
-    # 清理旧格式的日志文件（兼容以前的 videowatchdog-YYYYMMDD.log 格式）
+    # 清理旧日志文件
     _cleanup_old_logs(log_dir, max_log_files)
 
     return logger
@@ -102,14 +77,14 @@ def _cleanup_old_logs(log_dir, max_log_files):
                 # 如果解析失败，返回一个很早的时间
                 return datetime.min
 
-        now = datetime.now()
-        for filepath in log_files:
-            file_date = get_date_from_filename(filepath)
-            # 如果旧格式日志的日期距离今天超过 max_log_files 天，则删除
-            if (now - file_date).days > max_log_files:
-                try:
-                    os.remove(filepath)
-                except OSError:
-                    pass
+        # 按日期排序，最旧的在前面
+        log_files.sort(key=get_date_from_filename)
+
+        while len(log_files) > max_log_files:
+            oldest_file = log_files.pop(0)
+            try:
+                os.remove(oldest_file)
+            except OSError:
+                pass
     except Exception:
         pass
