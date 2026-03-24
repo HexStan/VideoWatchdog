@@ -67,6 +67,7 @@ The project uses the TOML format for configuration, with the core configuration 
 
 ```toml
 [global]
+scan_interval = 0     # Scan interval in seconds (set to 0 to run as a one-off task)
 max_log_files = 7      # Maximum number of log files to keep
 log_dir = "logs"       # Directory to save logs
 
@@ -76,7 +77,6 @@ monitor_dir = "./input"          # Directory to monitor (where files to be proce
 output_dir = "./output"          # Directory for processed output files
 processed_dir = "./processed"    # Directory to move source files after processing
 input_formats = ["mp4", "mkv"]   # File formats to monitor
-scan_interval = 60               # Scan interval in seconds (set to 0 to run as a one-off task)
 file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds
 failure_count = 3                # Maximum number of retries on failure

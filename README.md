@@ -63,6 +63,7 @@
 
 ```toml
 [global]
+scan_interval = 0      # 扫描间隔（秒），设为 0 则作为一次性任务运行
 max_log_files = 7      # 最多保留的日志文件数
 log_dir = "logs"       # 日志保存目录
 
@@ -72,7 +73,6 @@ monitor_dir = "./input"          # 监控目录（待处理文件所在目录）
 output_dir = "./output"          # 处理后的文件输出目录
 processed_dir = "./processed"    # 处理完成后，源文件的移动目录
 input_formats = ["mp4", "mkv"]   # 监听的文件格式
-scan_interval = 60               # 扫描间隔（秒），设为 0 则作为一次性任务运行
 file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改
 stable_duration = 5              # 文件大小稳定检测时间（秒）
 failure_count = 3                # 失败重试次数

@@ -35,7 +35,7 @@ def acquire_lock():
         sys.exit(1)
 
 
-def run_task(task, state_manager, logger):
+def run_task(task, state_manager, logger, scan_interval):
     """
     执行单个任务的扫描和处理流程
     """
@@ -43,12 +43,11 @@ def run_task(task, state_manager, logger):
     files = scan_directory(task, state_manager, logger)
 
     task_name = task.get('name', 'unnamed')
-    interval = task.get('scan_interval', 0)
     monitor_dir = task.get('monitor_dir', 'unknown')
 
     if not files:
         if not task.get('is_monitoring', False):
-            logger.info(f"【{task_name}】正在以 {interval} 秒的间隔持续监控 {monitor_dir}")
+            logger.info(f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监控 {monitor_dir}")
             task['is_monitoring'] = True
         return False
 
@@ -87,37 +86,22 @@ def main():
 
     logger.info("VideoWatchdog 已启动。")
 
-    # 检查是否所有任务都是一次性运行 (scan_interval == 0)
-    all_once = all(t.get('scan_interval', 0) == 0 for t in tasks)
+    scan_interval = global_cfg.get('scan_interval', 0)
 
-    if all_once:
-        logger.info("由于扫描间隔为 0，作为一次性任务执行。")
+    if scan_interval == 0:
+        logger.info("全局扫描间隔为 0，作为一次性任务执行。")
         for task in tasks:
-            run_task(task, state_manager, logger)
-        logger.info("所有任务完成，退出中……")
+            run_task(task, state_manager, logger, scan_interval)
+        logger.info("所有任务完成。")
     else:
-        # 记录每个任务上次运行的时间
-        last_run = {i: 0 for i in range(len(tasks))}
-
         logger.info("VideoWatchdog 已进入监控状态。")
         try:
             while True:
-                current_time = time.time()
-                for i, task in enumerate(tasks):
-                    interval = task.get('scan_interval', 0)
+                for task in tasks:
+                    run_task(task, state_manager, logger, scan_interval)
 
-                    if interval == 0:
-                        # 一次性任务只在第一次循环时运行
-                        if last_run[i] == 0:
-                            run_task(task, state_manager, logger)
-                            last_run[i] = current_time
-                    elif current_time - last_run[i] >= interval:
-                        # 周期性任务达到间隔时间后运行
-                        run_task(task, state_manager, logger)
-                        last_run[i] = time.time()
-
-                # 避免 CPU 占用过高
-                time.sleep(1)
+                # 每次执行完所有任务后，固定等待 scan_interval 秒
+                time.sleep(scan_interval)
         except KeyboardInterrupt:
             logger.info("VideoWatchdog 接收到退出信号，正在退出……")
 

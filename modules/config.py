@@ -24,6 +24,9 @@ class Config:
         return self.data.get('tasks', [])
 
     def validate(self):
+        if 'global' not in self.data:
+            raise ValueError("配置文件中缺失必要的 [global] 块。")
+
         if not self.tasks:
             raise ValueError("配置文件中没有任何任务。")
 
@@ -34,7 +37,6 @@ class Config:
                     raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
 
             # Set defaults for optional keys
-            task.setdefault('scan_interval', 60)
             task.setdefault('file_mtime', 0)
             task.setdefault('stable_duration', 0)
             task.setdefault('failure_count', 3)
