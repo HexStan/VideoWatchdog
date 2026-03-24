@@ -3,7 +3,6 @@ services:
     image: hexstan/video-watchdog:latest
     # build: .
     container_name: video-watchdog
-    restart: unless-stopped
     environment:
       - TZ=Asia/Shanghai
     
