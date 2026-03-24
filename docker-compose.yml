@@ -11,7 +11,7 @@ services:
       - ./config:/app/config
       - ./logs:/app/logs
 
-      # 需要监控和处理的目录
+      # 需要监听和处理的目录
       - ./input:/app/input
       - ./output:/app/output
       - ./processed:/app/processed

@@ -47,7 +47,7 @@ def run_task(task, state_manager, logger, scan_interval):
 
     if not files:
         if not task.get('is_monitoring', False):
-            logger.info(f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监控 {monitor_dir}")
+            logger.info(f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监听 {monitor_dir}")
             task['is_monitoring'] = True
         return False
 
@@ -94,7 +94,7 @@ def main():
             run_task(task, state_manager, logger, scan_interval)
         logger.info("所有任务完成。")
     else:
-        logger.info("VideoWatchdog 已进入监控状态。")
+        logger.info("VideoWatchdog 已进入监听模式。")
         try:
             while True:
                 for task in tasks:

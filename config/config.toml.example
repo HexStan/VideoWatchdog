@@ -16,7 +16,7 @@ log_dir = "logs"
 
 name = "Task 1"
 
-# 指定监控目录 (待处理目录)，必填
+# 指定监听目录 (待处理目录)，必填
 monitor_dir = "./input"
 
 # 指定输出目录，必填
