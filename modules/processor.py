@@ -44,7 +44,9 @@ def process_file(filepath, task, state_manager, logger):
             return
 
     dest_dir = task["dest_dir"]
-    backup_dir = task["backup_dir"]
+    remove_source = task.get("remove_source", False)
+    source_expired_minutes = task.get("source_expired_minutes", 0)
+    backup_dir = task.get("backup_dir", "")
 
     rel_dir = os.path.dirname(rel_path)
     filename = os.path.basename(filepath)
@@ -56,8 +58,9 @@ def process_file(filepath, task, state_manager, logger):
     dst_filepath = os.path.join(dst_dir, dst_filename)
 
     # 构造完成后的源文件移动路径
-    bak_dir = os.path.join(backup_dir, rel_dir)
-    bak_filepath = os.path.join(bak_dir, filename)
+    if not remove_source:
+        bak_dir = os.path.join(backup_dir, rel_dir)
+        bak_filepath = os.path.join(bak_dir, filename)
 
     # 确保输出目录存在
     os.makedirs(dst_dir, exist_ok=True)
@@ -154,14 +157,28 @@ def process_file(filepath, task, state_manager, logger):
             if final_status:
                 logger.info(f"FFmpeg 运行报告: {final_status}")
 
-            # 确保目标目录存在
-            os.makedirs(bak_dir, exist_ok=True)
+            if remove_source:
+                if source_expired_minutes == 0:
+                    try:
+                        os.remove(filepath)
+                        logger.info(f"已删除源文件: {rel_path}")
+                    except OSError as e:
+                        logger.error(f"删除源文件失败: {rel_path}\n{e}")
+                    state_manager.reset_failure(filepath)
+                else:
+                    state_manager.mark_success(filepath, time.time())
+                    logger.info(
+                        f"源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
+                    )
+            else:
+                # 确保目标目录存在
+                os.makedirs(bak_dir, exist_ok=True)
 
-            # 移动源文件到 backup_dir
-            shutil.move(filepath, bak_filepath)
+                # 移动源文件到 backup_dir
+                shutil.move(filepath, bak_filepath)
 
-            # 重置失败记录
-            state_manager.reset_failure(filepath)
+                # 重置失败记录
+                state_manager.reset_failure(filepath)
 
             # 清理 source_dir 中的空文件夹
             clean_empty_dirs(source_dir)

@@ -75,7 +75,9 @@ log_dir = "logs"       # Directory to save logs
 name = "Task 1"                  # Task name
 source_dir = "./source"          # Directory to monitor (where files to be processed are located)
 dest_dir = "./dest"              # Directory for processed output files
-backup_dir = "./backup"          # Directory to move source files after processing
+backup_dir = "./backup"          # Directory to move source files after processing (required when remove_source = false)
+remove_source = false            # If true, ignores backup_dir and deletes the source file directly after processing
+source_expired_minutes = 0       # Only available when remove_source = true. If non-zero, leaves the source file in source_dir for the specified minutes before deleting it
 input_formats = ["mp4", "mkv"]   # File formats to monitor
 file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds

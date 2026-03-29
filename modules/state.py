@@ -66,3 +66,25 @@ class StateManager:
         if filepath in self.state:
             del self.state[filepath]
             self._save()
+
+    def mark_success(self, filepath, timestamp):
+        """记录文件处理成功的时间，并重置失败次数"""
+        self.state[filepath] = {
+            "failures": 0,
+            "ffmpeg_failures": 0,
+            "success_time": timestamp,
+        }
+        self._save()
+
+    def get_success_time(self, filepath):
+        """获取文件处理成功的时间"""
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            return None
+        return val.get("success_time", None)
+
+    def remove_record(self, filepath):
+        """完全删除指定文件的记录"""
+        if filepath in self.state:
+            del self.state[filepath]
+            self._save()

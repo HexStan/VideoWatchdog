@@ -31,7 +31,13 @@ class Config:
             raise ValueError("配置文件中没有任何任务。")
 
         for i, task in enumerate(self.tasks):
-            required_keys = ["source_dir", "dest_dir", "backup_dir", "ffmpeg_cmd"]
+            task.setdefault("remove_source", False)
+            task.setdefault("source_expired_minutes", 0)
+
+            required_keys = ["source_dir", "dest_dir", "ffmpeg_cmd"]
+            if not task["remove_source"]:
+                required_keys.append("backup_dir")
+
             for key in required_keys:
                 if key not in task:
                     raise ValueError(f"任务 {i} 中缺失了必要项: {key}")

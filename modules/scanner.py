@@ -10,6 +10,8 @@ def scan_directory(task, state_manager, logger):
     file_mtime = task.get("file_mtime", 0)
     failure_count = task.get("failure_count", 3)
     input_formats = task.get("input_formats", [".mp4"])
+    remove_source = task.get("remove_source", False)
+    source_expired_minutes = task.get("source_expired_minutes", 0)
 
     valid_files = []
     if not os.path.exists(source_dir):
@@ -34,6 +36,20 @@ def scan_directory(task, state_manager, logger):
                 continue
 
             filepath = os.path.join(root, file)
+
+            # 检查是否已成功处理过
+            success_time = state_manager.get_success_time(filepath)
+            if success_time is not None:
+                if remove_source and source_expired_minutes > 0:
+                    if current_time - success_time >= source_expired_minutes * 60:
+                        try:
+                            os.remove(filepath)
+                            rel_path = os.path.relpath(filepath, source_dir)
+                            logger.info(f"已删除过期源文件: {rel_path}")
+                            state_manager.remove_record(filepath)
+                        except OSError as e:
+                            logger.error(f"删除过期源文件失败: {filepath}\n{e}")
+                continue
 
             # 检查失败次数
             if state_manager.get_failures(filepath) >= failure_count:
