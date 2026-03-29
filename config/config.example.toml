@@ -1,13 +1,9 @@
 [global]
 
-# 遍历时间间隔（秒），为0则作为一次性脚本运行一次后退出
-scan_interval = 0
+scan_interval = 0    # 遍历时间间隔（秒），为0则作为一次性脚本运行一次后退出
 
-# 最多保留的日志文件数
-max_log_files = 7
-
-# 日志保存目录
-log_dir = "logs"
+log_dir = "logs"     # 日志保存目录，默认当前目录
+max_log_files = 7    # 最多保留的日志文件数，超过后会删除最早的日志
 
 # ==================================================
 
@@ -15,16 +11,16 @@ log_dir = "logs"
 [[tasks]]
 name = "Task 1"
 
-source_dir = "./source"  # 指定监听目录 (待处理目录)，必填
-dest_dir = "./dest"      # 指定输出目录，必填
-backup_dir = "./backup"  # 指定处理完成后的源文件移动目录，必填
+source_dir = "./source"    # 指定监听目录 (待处理目录)，必填
+dest_dir = "./dest"        # 指定输出目录，必填
+backup_dir = "./backup"    # 指定处理完成后的源文件移动目录，必填
 
-input_formats = ["mp4", "mkv", "avi"]  # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
-file_mtime = 300                       # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
-stable_duration = 5                    # 检测文件大小变化的时间间隔（秒），为0则不检测大小变化
+input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
+file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
+stable_duration = 5                      # 检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
-failure_count = 3   # 最多重试次数
-fallback_count = 3  # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
+failure_count = 3     # 最多重试次数
+fallback_count = 3    # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
 
 # 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径，必填
 # 支持多行命令，执行时会自动合并为单行
@@ -47,8 +43,8 @@ ffmpeg -y \
   "{output}"
 """
 
-output_suffix = "encoded"  # 输出文件名的后缀
-output_format = "mp4"      # 输出文件的格式
+output_suffix = "encoded"    # 输出文件名的后缀
+output_format = "mp4"        # 输出文件的格式
 
 # ==================================================
 
