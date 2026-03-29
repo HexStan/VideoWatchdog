@@ -12,9 +12,9 @@ services:
       - ./logs:/app/logs
 
       # 需要监听和处理的目录
-      - ./input:/app/input
-      - ./output:/app/output
-      - ./processed:/app/processed
+      - ./source:/app/source
+      - ./dest:/app/dest
+      - ./backup:/app/backup
 
     # 启用 Intel/AMD GPU 支持 (VAAPI/QSV)
     devices:

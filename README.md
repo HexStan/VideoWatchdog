@@ -69,9 +69,9 @@ log_dir = "logs"       # 日志保存目录
 
 [[tasks]]
 name = "Task 1"                  # 任务名称
-monitor_dir = "./input"          # 监听目录（待处理文件所在目录）
-output_dir = "./output"          # 处理后的文件输出目录
-processed_dir = "./processed"    # 处理完成后，源文件的移动目录
+source_dir = "./source"           # 监听目录（待处理文件所在目录）
+dest_dir = "./dest"              # 处理后的文件输出目录
+backup_dir = "./backup"          # 处理完成后，源文件的移动目录
 input_formats = ["mp4", "mkv"]   # 监听的文件格式
 file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改
 stable_duration = 5              # 文件大小稳定检测时间（秒）
@@ -98,7 +98,7 @@ ffmpeg -y \
   "{output}"
 """
 
-suffix = "encoded"               # 输出文件名的追加后缀
+output_suffix = "encoded"               # 输出文件名的追加后缀
 output_format = "mp4"            # 输出文件格式
 ```
 

@@ -45,12 +45,12 @@ def run_task(task, state_manager, logger, scan_interval):
     files = scan_directory(task, state_manager, logger)
 
     task_name = task.get("name", "unnamed")
-    monitor_dir = task.get("monitor_dir", "unknown")
+    source_dir = task.get("source_dir", "unknown")
 
     if not files:
         if not task.get("is_monitoring", False):
             logger.info(
-                f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监听 {monitor_dir}"
+                f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监听 {source_dir}"
             )
             task["is_monitoring"] = True
         return False

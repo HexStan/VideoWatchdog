@@ -73,9 +73,9 @@ log_dir = "logs"       # Directory to save logs
 
 [[tasks]]
 name = "Task 1"                  # Task name
-monitor_dir = "./input"          # Directory to monitor (where files to be processed are located)
-output_dir = "./output"          # Directory for processed output files
-processed_dir = "./processed"    # Directory to move source files after processing
+source_dir = "./source"          # Directory to monitor (where files to be processed are located)
+dest_dir = "./dest"              # Directory for processed output files
+backup_dir = "./backup"          # Directory to move source files after processing
 input_formats = ["mp4", "mkv"]   # File formats to monitor
 file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds
@@ -102,7 +102,7 @@ ffmpeg -y \
   "{output}"
 """
 
-suffix = "encoded"               # Suffix appended to the output filename
+output_suffix = "encoded"               # Suffix appended to the output filename
 output_format = "mp4"            # Output file format
 ```
 
