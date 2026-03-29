@@ -9,23 +9,23 @@ max_log_files = 7    # 最多保留的日志文件数，超过后会删除最早
 
 # 允许配置多组任务，这里是第一组任务
 [[tasks]]
-name = "Task 1"
+name = "Task 1"     # 【选填】任务名称
 
-source_dir = "./source"    # 指定监听目录 (待处理目录)，必填
-dest_dir = "./dest"        # 指定输出目录，必填
-backup_dir = "./backup"    # 指定处理完成后的源文件移动目录，需要保留源文件则必填
+source_dir = "./source"    # 【必填】需要监听的目录 (源目录)
+dest_dir = "./dest"        # 【必填】目标目录
+backup_dir = "./backup"    # 【需要永久保留源文件则必填】处理完成后源文件的备份目录
 
-remove_source = false         # 如果为 true 则忽略 backup_dir，在处理完视频后直接删除源文件
-source_expired_minutes = 0    # 仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
+remove_source = false         # 【选填】如果为 true 则忽略 backup_dir，在处理完视频后直接删除源文件
+source_expired_minutes = 0    # 【选填】仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
 
-input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
-file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
-stable_duration = 5                      # 检测文件大小变化的时间间隔（秒），为0则不检测大小变化
+input_formats = ["mp4", "mkv", "avi"]    # 【选填】指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
+file_mtime = 300                         # 【选填】文件修改时间阈值（秒），为0则不以修改时间为筛选条件
+stable_duration = 5                      # 【选填】检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
-failure_count = 3     # 最多重试次数
-fallback_count = 3    # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
+failure_count = 3     # 【选填】最多重试次数
+fallback_count = 3    # 【选填】FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
 
-# 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径，必填
+# 【必填】要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径
 # 支持多行命令，执行时会自动合并为单行
 ffmpeg_cmd = """
 ffmpeg -y \
@@ -36,7 +36,7 @@ ffmpeg -y \
   "{output}"
 """
 
-# 备用 FFMpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
+# 【选填】备用 FFMpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
 ffmpeg_cmd_fallback = """
 ffmpeg -y \
   -i "{input}" \
@@ -46,8 +46,8 @@ ffmpeg -y \
   "{output}"
 """
 
-output_suffix = "encoded"    # 输出文件名的后缀
-output_format = "mp4"        # 输出文件的格式
+output_suffix = "encoded"    # 【选填】输出文件名的后缀，默认为空
+output_format = "mp4"        # 【选填】输出文件的格式，默认为 mp4
 
 # ==================================================
 
