@@ -8,7 +8,8 @@ class DailyRotatingFileHandler(logging.FileHandler):
     """
     按天滚动的日志处理器，每天生成一个新的日志文件，并清理旧日志。
     """
-    def __init__(self, log_dir, max_log_files, encoding='utf-8'):
+
+    def __init__(self, log_dir, max_log_files, encoding="utf-8"):
         self.log_dir = log_dir
         self.max_log_files = max_log_files
         self.current_date = datetime.now().strftime("%Y%m%d")
@@ -20,14 +21,16 @@ class DailyRotatingFileHandler(logging.FileHandler):
         if new_date != self.current_date:
             self.current_date = new_date
             self.close()
-            filename = os.path.join(self.log_dir, f"videowatchdog-{self.current_date}.log")
+            filename = os.path.join(
+                self.log_dir, f"videowatchdog-{self.current_date}.log"
+            )
             self.baseFilename = os.path.abspath(filename)
             self.stream = self._open()
-            
+
             # 日期变化时，执行旧日志清理
             if self.max_log_files > 0:
                 _cleanup_old_logs(self.log_dir, self.max_log_files)
-                
+
         super().emit(record)
 
 
@@ -41,7 +44,7 @@ def setup_logger(log_dir="logs", max_log_files=7):
     # 避免重复添加 handler
     if not logger.handlers:
         # 文件输出
-        fh = DailyRotatingFileHandler(log_dir, max_log_files, encoding='utf-8')
+        fh = DailyRotatingFileHandler(log_dir, max_log_files, encoding="utf-8")
         fh.setLevel(logging.INFO)
 
         # 控制台输出
@@ -49,7 +52,9 @@ def setup_logger(log_dir="logs", max_log_files=7):
         ch.setLevel(logging.INFO)
 
         # 格式化
-        formatter = logging.Formatter('%(asctime)s [%(levelname)s] %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+        formatter = logging.Formatter(
+            "%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
+        )
         fh.setFormatter(formatter)
         ch.setFormatter(formatter)
 

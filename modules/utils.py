@@ -8,14 +8,19 @@ def get_video_duration(filepath):
     """
     cmd = [
         "ffprobe",
-        "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        filepath
+        "-v",
+        "error",
+        "-show_entries",
+        "format=duration",
+        "-of",
+        "default=noprint_wrappers=1:nokey=1",
+        filepath,
     ]
     try:
         # 设定超时时间，防止卡死
-        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10)
+        result = subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=10
+        )
         if result.returncode == 0:
             return float(result.stdout.strip())
         return 0.0

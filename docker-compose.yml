@@ -5,7 +5,7 @@ services:
     container_name: video-watchdog
     environment:
       - TZ=Asia/Shanghai
-    
+
     volumes:
       # 配置文件和日志目录
       - ./config:/app/config
@@ -15,7 +15,7 @@ services:
       - ./input:/app/input
       - ./output:/app/output
       - ./processed:/app/processed
-    
+
     # 启用 Intel/AMD GPU 支持 (VAAPI/QSV)
     devices:
       - /dev/dri:/dev/dri

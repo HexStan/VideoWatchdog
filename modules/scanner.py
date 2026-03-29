@@ -6,15 +6,15 @@ def scan_directory(task, state_manager, logger):
     """
     扫描目录，根据修改时间和大小变化筛选文件
     """
-    monitor_dir = task['monitor_dir']
-    file_mtime = task.get('file_mtime', 0)
-    failure_count = task.get('failure_count', 3)
-    input_formats = task.get('input_formats', ['.mp4'])
+    monitor_dir = task["monitor_dir"]
+    file_mtime = task.get("file_mtime", 0)
+    failure_count = task.get("failure_count", 3)
+    input_formats = task.get("input_formats", [".mp4"])
 
     valid_files = []
     if not os.path.exists(monitor_dir):
         # 只有在第一次运行时才输出警告，避免重复日志
-        if not hasattr(scan_directory, '_warned_dirs'):
+        if not hasattr(scan_directory, "_warned_dirs"):
             scan_directory._warned_dirs = set()
         if monitor_dir not in scan_directory._warned_dirs:
             logger.warning(f"目录不存在: {monitor_dir}")
@@ -51,7 +51,7 @@ def scan_directory(task, state_manager, logger):
             except OSError as e:
                 logger.error(f"读取文件失败: {filepath}\n{e}")
 
-    task_name = task.get('name', 'unnamed')
+    task_name = task.get("name", "unnamed")
     if candidates:
         for filepath, _ in candidates:
             rel_path = os.path.relpath(filepath, monitor_dir)

@@ -16,7 +16,7 @@ class StateManager:
     def _load(self):
         if os.path.exists(self.state_file):
             try:
-                with open(self.state_file, 'r', encoding='utf-8') as f:
+                with open(self.state_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except json.JSONDecodeError:
                 return {}
@@ -24,7 +24,7 @@ class StateManager:
 
     def _save(self):
         try:
-            with open(self.state_file, 'w', encoding='utf-8') as f:
+            with open(self.state_file, "w", encoding="utf-8") as f:
                 json.dump(self.state, f, indent=4, ensure_ascii=False)
         except IOError as e:
             print(f"保存状态失败，原因:\n{e}")

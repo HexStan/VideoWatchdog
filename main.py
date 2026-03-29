@@ -23,11 +23,13 @@ def acquire_lock():
     使用 Linux 文件锁防止多个实例同时运行
     """
     if not HAS_FCNTL:
-        print("Warning: fcntl module not found. File locking is only supported on Linux/Unix.")
+        print(
+            "Warning: fcntl module not found. File locking is only supported on Linux/Unix."
+        )
         return None
 
     try:
-        lock_fd = open(LOCK_FILE, 'w')
+        lock_fd = open(LOCK_FILE, "w")
         fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         return lock_fd
     except IOError:
@@ -42,16 +44,18 @@ def run_task(task, state_manager, logger, scan_interval):
     # 扫描目录获取符合条件的文件
     files = scan_directory(task, state_manager, logger)
 
-    task_name = task.get('name', 'unnamed')
-    monitor_dir = task.get('monitor_dir', 'unknown')
+    task_name = task.get("name", "unnamed")
+    monitor_dir = task.get("monitor_dir", "unknown")
 
     if not files:
-        if not task.get('is_monitoring', False):
-            logger.info(f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监听 {monitor_dir}")
-            task['is_monitoring'] = True
+        if not task.get("is_monitoring", False):
+            logger.info(
+                f"【{task_name}】正在以 {scan_interval} 秒的间隔持续监听 {monitor_dir}"
+            )
+            task["is_monitoring"] = True
         return False
 
-    task['is_monitoring'] = False
+    task["is_monitoring"] = False
 
     # 逐个处理文件
     for filepath in files:
@@ -76,8 +80,8 @@ def main():
 
     # 初始化日志
     logger = setup_logger(
-        log_dir=global_cfg.get('log_dir', 'logs'),
-        max_log_files=global_cfg.get('max_log_files', 7)
+        log_dir=global_cfg.get("log_dir", "logs"),
+        max_log_files=global_cfg.get("max_log_files", 7),
     )
 
     # 初始化状态管理器
@@ -86,7 +90,7 @@ def main():
 
     logger.info("VideoWatchdog 已启动。")
 
-    scan_interval = global_cfg.get('scan_interval', 0)
+    scan_interval = global_cfg.get("scan_interval", 0)
 
     if scan_interval == 0:
         logger.info("全局扫描间隔为 0，作为一次性任务执行。")

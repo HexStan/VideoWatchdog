@@ -5,9 +5,9 @@ ENV PYTHONUNBUFFERED=1
 
 # 启用 non-free 和 contrib 仓库以安装硬件加速驱动
 RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
-        sed -i 's/Components: main.*/Components: main contrib non-free non-free-firmware/g' /etc/apt/sources.list.d/debian.sources; \
+    sed -i 's/Components: main.*/Components: main contrib non-free non-free-firmware/g' /etc/apt/sources.list.d/debian.sources; \
     else \
-        sed -i 's/main/main contrib non-free non-free-firmware/g' /etc/apt/sources.list; \
+    sed -i 's/main/main contrib non-free non-free-firmware/g' /etc/apt/sources.list; \
     fi
 
 # 安装 FFmpeg 和硬件加速驱动
@@ -21,9 +21,9 @@ RUN apt-get update && \
     mesa-va-drivers && \
     ARCH=$(dpkg --print-architecture) && \
     if [ "$ARCH" = "amd64" ]; then \
-        apt-get install -y --no-install-recommends \
-        intel-media-va-driver-non-free \
-        nvidia-vaapi-driver; \
+    apt-get install -y --no-install-recommends \
+    intel-media-va-driver-non-free \
+    nvidia-vaapi-driver; \
     fi && \
     rm -rf /var/lib/apt/lists/*
 

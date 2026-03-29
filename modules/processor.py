@@ -13,13 +13,13 @@ def process_file(filepath, task, state_manager, logger):
     """
     处理单个文件：执行 FFmpeg，移动文件，记录日志和状态
     """
-    monitor_dir = task['monitor_dir']
+    monitor_dir = task["monitor_dir"]
 
     # 计算相对路径以保持目录结构
     rel_path = os.path.relpath(filepath, monitor_dir)
 
     # 在处理前检查文件大小是否稳定
-    stable_duration = task.get('stable_duration', 0)
+    stable_duration = task.get("stable_duration", 0)
     if stable_duration > 0:
         try:
             old_size = os.path.getsize(filepath)
@@ -43,8 +43,8 @@ def process_file(filepath, task, state_manager, logger):
             logger.warning(f"文件 {rel_path} 已不存在，跳过处理。")
             return
 
-    output_dir = task['output_dir']
-    processed_dir = task['processed_dir']
+    output_dir = task["output_dir"]
+    processed_dir = task["processed_dir"]
 
     rel_dir = os.path.dirname(rel_path)
     filename = os.path.basename(filepath)
@@ -66,8 +66,8 @@ def process_file(filepath, task, state_manager, logger):
     duration = humanfriendly.format_timespan(get_video_duration(filepath))
 
     # 检查是否需要使用 fallback 命令
-    fallback_count = task.get('fallback_count', 0)
-    ffmpeg_cmd_fallback = task.get('ffmpeg_cmd_fallback', '')
+    fallback_count = task.get("fallback_count", 0)
+    ffmpeg_cmd_fallback = task.get("ffmpeg_cmd_fallback", "")
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
@@ -78,16 +78,18 @@ def process_file(filepath, task, state_manager, logger):
         raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=out_filepath)
         logger.info(f"使用 fallback 命令转码 {rel_path}，视频时长 {duration}。")
     else:
-        raw_cmd = task['ffmpeg_cmd'].format(input=filepath, output=out_filepath)
+        raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=out_filepath)
         logger.info(f"开始转码 {rel_path}，视频时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
-    cmd = raw_cmd.replace('\n', ' ').replace('\r', ' ')
+    cmd = raw_cmd.replace("\n", " ").replace("\r", " ")
 
     start_time = time.time()
     try:
         # 执行命令，使用 Popen 实时读取输出
-        process = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
 
         last_status_line = ""
         error_output = []
@@ -103,11 +105,11 @@ def process_file(filepath, task, state_manager, logger):
 
             if char:
                 try:
-                    c = char.decode('utf-8', errors='ignore')
+                    c = char.decode("utf-8", errors="ignore")
                 except:
                     continue
 
-                if c == '\r' or c == '\n':
+                if c == "\r" or c == "\n":
                     line = last_status_line.strip()
                     if line:
                         error_output.append(line)
@@ -146,7 +148,9 @@ def process_file(filepath, task, state_manager, logger):
 
         if process.returncode == 0:
             out_rel_path = os.path.relpath(out_filepath, monitor_dir)
-            logger.info(f"转码成功，耗时 {humanfriendly.format_timespan(elapsed_time)}。")
+            logger.info(
+                f"转码成功，耗时 {humanfriendly.format_timespan(elapsed_time)}。"
+            )
             if final_status:
                 logger.info(f"FFmpeg 运行报告: {final_status}")
 
