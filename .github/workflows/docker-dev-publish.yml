@@ -1,15 +1,12 @@
 name: Docker Build and Publish
 
 on:
-  push:
-    tags:
-      - "*"
   workflow_dispatch:
 
 env:
   # DOCKERHUB_REPO: ${{ secrets.DOCKERHUB_USERNAME }}/video-watchdog
   GHCR_REPO: ghcr.io/${{ github.repository }}
-  CODE_BRANCH: main
+  CODE_BRANCH: dev
 
 jobs:
   build-and-push:
@@ -21,6 +18,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          ref: ${{ env.CODE_BRANCH }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
