@@ -2,9 +2,9 @@ import os
 import subprocess
 
 
-def get_video_duration(filepath):
+def get_media_duration(filepath):
     """
-    使用 ffprobe 获取视频时长（秒）
+    使用 ffprobe 获取音视频时长（秒）
     """
     cmd = [
         "ffprobe",

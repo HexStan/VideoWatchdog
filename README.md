@@ -2,7 +2,7 @@
 
 [English](README_EN.md) | 中文
 
-**VideoWatchdog** 是一个基于 Python 的轻量级自动化工具，用于监听指定目录中的视频文件，并在文件写入完成后自动调用 FFmpeg 进行处理。它非常适合需要自动化视频转码、压缩或格式转换的场景。
+**VideoWatchdog** 是一个基于 Python 的轻量级自动化工具，用于监听指定目录中的音视频文件，并在文件写入完成后自动调用 FFmpeg 进行处理。它非常适合需要自动化音视频转码、压缩或格式转换的场景。
 
 ## 💡 启发与背景
 
@@ -72,7 +72,7 @@ name = "Task 1"                  # 任务名称
 source_dir = "./source"          # 监听目录（待处理文件所在目录）
 dest_dir = "./dest"              # 处理后的文件输出目录
 backup_dir = "./backup"          # 处理完成后，源文件的移动目录（当不配置 remove_source 时必填）
-remove_source = false            # 如果为 true，则忽略 backup_dir，在处理完视频后直接删除源文件
+remove_source = false            # 如果为 true，则忽略 backup_dir，在处理完音视频后直接删除源文件
 source_expired_minutes = 0       # 仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
 input_formats = ["mp4", "mkv"]   # 监听的文件格式
 file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改

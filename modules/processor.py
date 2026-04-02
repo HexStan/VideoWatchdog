@@ -6,7 +6,7 @@ import time
 
 import humanfriendly
 
-from modules.utils import get_video_duration, clean_empty_dirs
+from modules.utils import get_media_duration, clean_empty_dirs
 
 
 def process_file(filepath, task, state_manager, logger):
@@ -65,8 +65,8 @@ def process_file(filepath, task, state_manager, logger):
     # 确保输出目录存在
     os.makedirs(dst_dir, exist_ok=True)
 
-    # 获取视频时长并格式化
-    duration = humanfriendly.format_timespan(get_video_duration(filepath))
+    # 获取音视频时长并格式化
+    duration = humanfriendly.format_timespan(get_media_duration(filepath))
 
     # 检查是否需要使用 fallback 命令
     fallback_count = task.get("fallback_count", 0)
@@ -79,10 +79,10 @@ def process_file(filepath, task, state_manager, logger):
 
     if use_fallback:
         raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_filepath)
-        logger.info(f"使用 fallback 命令转码 {rel_path}，视频时长 {duration}。")
+        logger.info(f"使用 fallback 命令转码 {rel_path}，媒体时长 {duration}。")
     else:
         raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=dst_filepath)
-        logger.info(f"开始转码 {rel_path}，视频时长 {duration}。")
+        logger.info(f"开始转码 {rel_path}，媒体时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace("\n", " ").replace("\r", " ")
