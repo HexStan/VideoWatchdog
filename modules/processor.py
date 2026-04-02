@@ -44,6 +44,27 @@ def process_file(filepath, task, state_manager, logger):
             return
 
     dest_dir = task["dest_dir"]
+
+    # 检查是否为未识别格式且需要直接移动
+    _, ext = os.path.splitext(filepath)
+    input_formats = task.get("input_formats", [".mp4"])
+    is_recognized = ext.lower() in [e.lower() for e in input_formats]
+
+    if not is_recognized and task.get("move_unrecognized_files", False):
+        dst_filepath = os.path.join(dest_dir, rel_path)
+        dst_dir = os.path.dirname(dst_filepath)
+        os.makedirs(dst_dir, exist_ok=True)
+
+        logger.info(f"文件 {rel_path} 不属于 input_formats，直接移动到目标目录。")
+        try:
+            shutil.move(filepath, dst_filepath)
+            clean_empty_dirs(source_dir)
+            state_manager.reset_failure(filepath)
+        except Exception as e:
+            logger.error(f"移动文件失败: {rel_path}\n{e}")
+            state_manager.increment_failure(filepath)
+        return
+
     remove_source = task.get("remove_source", False)
     source_expired_minutes = task.get("source_expired_minutes", 0)
     backup_dir = task.get("backup_dir", "")

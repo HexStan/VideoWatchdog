@@ -79,6 +79,7 @@ backup_dir = "./backup"          # Directory to move source files after processi
 remove_source = false            # If true, ignores backup_dir and deletes the source file directly after processing
 source_expired_minutes = 0       # Only available when remove_source = true. If non-zero, leaves the source file in source_dir for the specified minutes before deleting it
 input_formats = ["mp4", "mkv"]   # File formats to monitor
+move_unrecognized_files = false  # If true, files not in input_formats will be directly moved to dest_dir after passing the stable_duration check
 file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds
 failure_count = 3                # Maximum number of retries on failure

@@ -75,6 +75,7 @@ backup_dir = "./backup"          # 处理完成后，源文件的移动目录（
 remove_source = false            # 如果为 true，则忽略 backup_dir，在处理完音视频后直接删除源文件
 source_expired_minutes = 0       # 仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
 input_formats = ["mp4", "mkv"]   # 监听的文件格式
+move_unrecognized_files = false  # 如果为 true，则将不属于 input_formats 的文件在通过 stable_duration 检查后直接移动到 dest_dir
 file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改
 stable_duration = 5              # 文件大小稳定检测时间（秒）
 failure_count = 3                # 失败重试次数
