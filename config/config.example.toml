@@ -47,7 +47,7 @@ ffmpeg -y \
   "{output}"
 """
 
-output_suffix = "encoded"    # 【选填】输出文件名的后缀，默认为空
+output_suffix = "-encoded"    # 【选填】输出文件名的后缀，默认为空
 output_format = "mp4"        # 【选填】输出文件的格式，默认为 mp4
 
 # ==================================================

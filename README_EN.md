@@ -105,7 +105,7 @@ ffmpeg -y \
   "{output}"
 """
 
-output_suffix = "encoded"               # Suffix appended to the output filename
+output_suffix = "-encoded"               # Suffix appended to the output filename
 output_format = "mp4"            # Output file format
 ```
 

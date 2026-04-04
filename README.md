@@ -101,7 +101,7 @@ ffmpeg -y \
   "{output}"
 """
 
-output_suffix = "encoded"               # 输出文件名的追加后缀
+output_suffix = "-encoded"               # 输出文件名的追加后缀
 output_format = "mp4"            # 输出文件格式
 ```
 
