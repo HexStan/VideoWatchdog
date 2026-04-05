@@ -32,8 +32,7 @@ def scan_directory(task, state_manager, logger):
             # 检查文件扩展名
             _, ext = os.path.splitext(file)
             # 统一转换为小写进行比较（此时 ext 和 input_formats 都带有前导点）
-            is_recognized = ext.lower() in [e.lower() for e in input_formats]
-            if not is_recognized and not task.get("move_unrecognized_files", False):
+            if ext.lower() not in [e.lower() for e in input_formats]:
                 continue
 
             filepath = os.path.join(root, file)

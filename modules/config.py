@@ -50,7 +50,6 @@ class Config:
             task.setdefault("ffmpeg_cmd_fallback", "")
             task.setdefault("name", f"Task {i}")
             task.setdefault("input_formats", ["mp4"])
-            task.setdefault("move_unrecognized_files", False)
             task.setdefault("output_format", "mp4")
             task.setdefault("output_suffix", "")
 
