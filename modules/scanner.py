@@ -10,6 +10,8 @@ def scan_directory(task, state_manager, logger):
     file_mtime = task.get("file_mtime", 0)
     failure_count = task.get("failure_count", 3)
     input_formats = task.get("input_formats", [".mp4"])
+    direct_move_formats = task.get("direct_move_formats", [])
+    allowed_formats = input_formats + direct_move_formats
     remove_source = task.get("remove_source", False)
     source_expired_minutes = task.get("source_expired_minutes", 0)
 
@@ -31,8 +33,8 @@ def scan_directory(task, state_manager, logger):
         for file in files:
             # 检查文件扩展名
             _, ext = os.path.splitext(file)
-            # 统一转换为小写进行比较（此时 ext 和 input_formats 都带有前导点）
-            if ext.lower() not in [e.lower() for e in input_formats]:
+            # 统一转换为小写进行比较（此时 ext 和 allowed_formats 都带有前导点）
+            if ext.lower() not in [e.lower() for e in allowed_formats]:
                 continue
 
             filepath = os.path.join(root, file)

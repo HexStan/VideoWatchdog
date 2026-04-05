@@ -50,6 +50,7 @@ class Config:
             task.setdefault("ffmpeg_cmd_fallback", "")
             task.setdefault("name", f"Task {i}")
             task.setdefault("input_formats", ["mp4"])
+            task.setdefault("direct_move_formats", [])
             task.setdefault("output_format", "mp4")
             task.setdefault("output_suffix", "")
 
@@ -58,5 +59,16 @@ class Config:
                 ext if ext.startswith(".") else f".{ext}"
                 for ext in task["input_formats"]
             ]
+
+            # 确保 direct_move_formats 具有前导点
+            task["direct_move_formats"] = [
+                ext if ext.startswith(".") else f".{ext}"
+                for ext in task["direct_move_formats"]
+            ]
+
+            # 检查 input_formats 和 direct_move_formats 是否有重复
+            overlap = set(task["input_formats"]) & set(task["direct_move_formats"])
+            if overlap:
+                raise ValueError(f"任务 {i} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}")
 
         return True

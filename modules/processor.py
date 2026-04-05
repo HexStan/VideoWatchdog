@@ -50,7 +50,25 @@ def process_file(filepath, task, state_manager, logger):
 
     rel_dir = os.path.dirname(rel_path)
     filename = os.path.basename(filepath)
-    name, _ = os.path.splitext(filename)
+    name, ext = os.path.splitext(filename)
+
+    # 检查是否为直接移动格式
+    direct_move_formats = task.get("direct_move_formats", [])
+    if ext.lower() in [e.lower() for e in direct_move_formats]:
+        dst_dir = os.path.join(dest_dir, rel_dir)
+        dst_filepath = os.path.join(dst_dir, filename)
+        os.makedirs(dst_dir, exist_ok=True)
+        
+        try:
+            shutil.move(filepath, dst_filepath)
+            logger.info(f"已直接移动文件 {rel_path} 到 {dst_filepath}")
+            state_manager.reset_failure(filepath)
+            # 清理 source_dir 中的空文件夹
+            clean_empty_dirs(source_dir)
+        except Exception as e:
+            logger.error(f"直接移动文件失败: {rel_path}\n{e}")
+            state_manager.increment_failure(filepath)
+        return
 
     # 构造输出文件名：{原文件名}{后缀}.{格式}
     dst_filename = f"{name}{task['output_suffix']}.{task['output_format']}"
