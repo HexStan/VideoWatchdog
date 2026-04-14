@@ -91,7 +91,7 @@ ffmpeg -y \
   "{output}"
 """
 
-# 备用 FFMpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
+# 备用 FFmpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
 ffmpeg_cmd_fallback = """
 ffmpeg -y \
   -i "{input}" \
