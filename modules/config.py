@@ -51,8 +51,6 @@ class Config:
             task.setdefault("name", f"Task {i}")
             task.setdefault("input_formats", ["mp4"])
             task.setdefault("direct_move_formats", [])
-            task.setdefault("output_format", "mp4")
-            task.setdefault("output_suffix", "")
 
             # 确保 input_formats 具有前导点
             task["input_formats"] = [

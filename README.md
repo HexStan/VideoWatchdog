@@ -81,14 +81,14 @@ stable_duration = 5              # 文件大小稳定检测时间（秒）
 failure_count = 3                # 失败重试次数
 fallback_count = 3               # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
 
-# 自定义 FFmpeg 命令，{input} 和 {output} 会被自动替换
+# 自定义 FFmpeg 命令，{input} 会被替换为源文件路径，{output} 会被替换为目标目录下的基础文件名（不含扩展名）
 ffmpeg_cmd = """
 ffmpeg -y \
   -i "{input}" \
   -c:v libx264 \
   -preset fast \
   -crf 23 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
 
 # 备用 FFmpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
@@ -98,11 +98,8 @@ ffmpeg -y \
   -c:v libx264 \
   -preset medium \
   -crf 28 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
-
-output_suffix = "-encoded"               # 输出文件名的追加后缀
-output_format = "mp4"            # 输出文件格式
 ```
 
 ## 📄 许可证

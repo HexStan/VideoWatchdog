@@ -70,10 +70,9 @@ def process_file(filepath, task, state_manager, logger):
             state_manager.increment_failure(filepath)
         return
 
-    # 构造输出文件名：{原文件名}{后缀}.{格式}
-    dst_filename = f"{name}{task['output_suffix']}.{task['output_format']}"
+    # 构造输出文件基础路径（不含扩展名）
     dst_dir = os.path.join(dest_dir, rel_dir)
-    dst_filepath = os.path.join(dst_dir, dst_filename)
+    dst_basepath = os.path.join(dst_dir, name)
 
     # 构造完成后的源文件移动路径
     if not remove_source:
@@ -82,6 +81,9 @@ def process_file(filepath, task, state_manager, logger):
 
     # 确保输出目录存在
     os.makedirs(dst_dir, exist_ok=True)
+
+    # 记录转码前目标目录的文件列表，用于失败时清理不完整的输出文件
+    existing_files = set(os.listdir(dst_dir))
 
     # 获取音视频时长并格式化
     duration = humanfriendly.format_timespan(get_media_duration(filepath))
@@ -96,10 +98,10 @@ def process_file(filepath, task, state_manager, logger):
             use_fallback = True
 
     if use_fallback:
-        raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_filepath)
+        raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_basepath)
         logger.info(f"使用 fallback 命令转码 {rel_path}，媒体时长 {duration}。")
     else:
-        raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=dst_filepath)
+        raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=dst_basepath)
         logger.info(f"开始转码 {rel_path}，媒体时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
@@ -214,8 +216,17 @@ def process_file(filepath, task, state_manager, logger):
                     state_manager.increment_failure(filepath)
 
             # 如果生成了不完整的输出文件，将其删除
-            if os.path.exists(dst_filepath):
-                os.remove(dst_filepath)
+            if os.path.exists(dst_dir):
+                current_files = set(os.listdir(dst_dir))
+                new_files = current_files - existing_files
+                for f in new_files:
+                    if f.startswith(name):
+                        f_path = os.path.join(dst_dir, f)
+                        if os.path.exists(f_path):
+                            try:
+                                os.remove(f_path)
+                            except OSError:
+                                pass
 
     except Exception as e:
         logger.error(f"其他失败，原因:\n{e}")

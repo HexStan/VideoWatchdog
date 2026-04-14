@@ -85,14 +85,14 @@ stable_duration = 5              # File size stability detection time in seconds
 failure_count = 3                # Maximum number of retries on failure
 fallback_count = 3               # Number of FFmpeg errors before falling back to ffmpeg_cmd_fallback
 
-# Custom FFmpeg command, {input} and {output} will be automatically replaced
+# Custom FFmpeg command, {input} will be replaced with the source file path, {output} will be replaced with the base filename in the destination directory (without extension)
 ffmpeg_cmd = """
 ffmpeg -y \
   -i "{input}" \
   -c:v libx264 \
   -preset fast \
   -crf 23 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
 
 # Fallback FFmpeg command, executed when ffmpeg_cmd fails fallback_count times
@@ -102,11 +102,8 @@ ffmpeg -y \
   -c:v libx264 \
   -preset medium \
   -crf 28 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
-
-output_suffix = "-encoded"               # Suffix appended to the output filename
-output_format = "mp4"            # Output file format
 ```
 
 ## 📄 License
