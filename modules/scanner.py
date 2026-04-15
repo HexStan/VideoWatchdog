@@ -69,11 +69,11 @@ def scan_directory(task, state_manager, logger):
             except OSError as e:
                 logger.error(f"读取文件失败: {filepath}\n{e}")
 
-    task_name = task.get("name", "unnamed")
+    task_name = task.get("name", "未命名")
     if candidates:
         for filepath, _ in candidates:
             rel_path = os.path.relpath(filepath, source_dir)
-            logger.info(f"【{task_name}】监测到新文件: {rel_path}")
+            logger.info(f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}")
 
     # 将所有候选文件视为有效
     valid_files = [c[0] for c in candidates]

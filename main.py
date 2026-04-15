@@ -44,7 +44,7 @@ def run_task(task, state_manager, logger, scan_interval):
     # 扫描目录获取符合条件的文件
     files = scan_directory(task, state_manager, logger)
 
-    task_name = task.get("name", "unnamed")
+    task_name = task.get("name", "未命名")
     source_dir = task.get("source_dir", "unknown")
 
     if not files:
