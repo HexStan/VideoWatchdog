@@ -10,13 +10,13 @@ def scan_directory(task, state_manager, logger):
     扫描目录，根据修改时间、文件大小、以及各类过滤条件筛选文件
     """
     source_dir = task["source_dir"]
-    
+
     # 提取 filter 配置
     filter_config = task.get("filter", {})
     file_mtime = filter_config.get("file_mtime", 0)
     input_formats = filter_config.get("input_formats", [".mp4"])
     direct_move_formats = filter_config.get("direct_move_formats", [])
-    
+
     failure_count = task.get("failure_count", 3)
     allowed_formats = input_formats + direct_move_formats
     remove_source = task.get("remove_source", False)
@@ -83,12 +83,12 @@ def scan_directory(task, state_manager, logger):
 
                 # 读取媒体信息进行进一步过滤
                 media_info = {"size": stat.st_size}
-                
+
                 # 若需要除了 size 外的媒体信息，则调用 ffprobe
                 if file_filter.requires_media_info():
                     media_info = get_media_info(filepath)
                     media_info["size"] = stat.st_size
-                
+
                 if not file_filter.match(media_info):
                     # 记录为不符合过滤条件
                     state_manager.mark_filter_skipped(filepath, mtime)

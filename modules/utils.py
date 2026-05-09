@@ -56,7 +56,7 @@ def get_media_info(filepath):
         )
         if result.returncode == 0:
             data = json.loads(result.stdout)
-            
+
             fmt = data.get("format", {})
             if "duration" in fmt:
                 try:
@@ -78,14 +78,16 @@ def get_media_info(filepath):
                             info["video_bitrate"] = float(stream["bit_rate"])
                         except ValueError:
                             pass
-                    
+
                     width = stream.get("width", 0)
                     height = stream.get("height", 0)
                     if width and height:
                         info["short_side"] = min(width, height)
-                        
+
                     # 尝试计算帧率，形如 "24000/1001" 或 "24/1"
-                    fps_str = stream.get("avg_frame_rate") or stream.get("r_frame_rate", "")
+                    fps_str = stream.get("avg_frame_rate") or stream.get(
+                        "r_frame_rate", ""
+                    )
                     if fps_str and "/" in fps_str:
                         num, den = fps_str.split("/")
                         try:
@@ -102,7 +104,7 @@ def get_media_info(filepath):
                             pass
     except Exception as e:
         print(f"Error fetching media info with ffprobe: {e}")
-        
+
     return info
 
 

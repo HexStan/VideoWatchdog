@@ -70,8 +70,12 @@ class Config:
             ]
 
             # 检查 input_formats 和 direct_move_formats 是否有重复
-            overlap = set(f_config["input_formats"]) & set(f_config["direct_move_formats"])
+            overlap = set(f_config["input_formats"]) & set(
+                f_config["direct_move_formats"]
+            )
             if overlap:
-                raise ValueError(f"任务 {i} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}")
+                raise ValueError(
+                    f"任务 {i} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}"
+                )
 
         return True

@@ -30,12 +30,16 @@ def parse_bitrate(val):
         if val_str.endswith("KBPS") or val_str.endswith("K"):
             return float(val_str.replace("KBPS", "").replace("K", "").strip()) * 1024
         elif val_str.endswith("MBPS") or val_str.endswith("M"):
-            return float(val_str.replace("MBPS", "").replace("M", "").strip()) * 1024 * 1024
+            return (
+                float(val_str.replace("MBPS", "").replace("M", "").strip())
+                * 1024
+                * 1024
+            )
         elif val_str.endswith("BPS"):
             return float(val_str.replace("BPS", "").strip())
     except ValueError:
         pass
-    
+
     # fallback like size
     try:
         return humanfriendly.parse_size(val_str)
@@ -68,8 +72,12 @@ class FileFilter:
         self.short_side_min = int(self._get_range("short_side", "min") or 0)
         self.short_side_max = int(self._get_range("short_side", "max") or 0)
 
-        self.exclude_vcodecs = [c.lower() for c in self.config.get("exclude_video_codecs", [])]
-        self.exclude_acodecs = [c.lower() for c in self.config.get("exclude_audio_codecs", [])]
+        self.exclude_vcodecs = [
+            c.lower() for c in self.config.get("exclude_video_codecs", [])
+        ]
+        self.exclude_acodecs = [
+            c.lower() for c in self.config.get("exclude_audio_codecs", [])
+        ]
 
     def _get_range(self, key, boundary):
         val = self.config.get(key, {})
@@ -116,10 +124,16 @@ class FileFilter:
         if self.short_side_max > 0 and media_info["short_side"] > self.short_side_max:
             return False
 
-        if self.exclude_vcodecs and media_info["video_codec"].lower() in self.exclude_vcodecs:
+        if (
+            self.exclude_vcodecs
+            and media_info["video_codec"].lower() in self.exclude_vcodecs
+        ):
             return False
-        
-        if self.exclude_acodecs and media_info["audio_codec"].lower() in self.exclude_acodecs:
+
+        if (
+            self.exclude_acodecs
+            and media_info["audio_codec"].lower() in self.exclude_acodecs
+        ):
             return False
 
         return True
@@ -129,12 +143,21 @@ class FileFilter:
         判断是否配置了需要 ffprobe 才能获取到的条件（即 size 和 mtime 以外的条件）
         如果只需要 size，就不用调用 ffprobe。
         """
-        return any([
-            self.duration_min > 0, self.duration_max > 0,
-            self.t_bitrate_min > 0, self.t_bitrate_max > 0,
-            self.v_bitrate_min > 0, self.v_bitrate_max > 0,
-            self.a_bitrate_min > 0, self.a_bitrate_max > 0,
-            self.framerate_min > 0, self.framerate_max > 0,
-            self.short_side_min > 0, self.short_side_max > 0,
-            self.exclude_vcodecs, self.exclude_acodecs
-        ])
+        return any(
+            [
+                self.duration_min > 0,
+                self.duration_max > 0,
+                self.t_bitrate_min > 0,
+                self.t_bitrate_max > 0,
+                self.v_bitrate_min > 0,
+                self.v_bitrate_max > 0,
+                self.a_bitrate_min > 0,
+                self.a_bitrate_max > 0,
+                self.framerate_min > 0,
+                self.framerate_max > 0,
+                self.short_side_min > 0,
+                self.short_side_max > 0,
+                self.exclude_vcodecs,
+                self.exclude_acodecs,
+            ]
+        )
