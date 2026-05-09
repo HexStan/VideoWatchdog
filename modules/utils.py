@@ -1,7 +1,6 @@
 import os
 import subprocess
 import json
-import logging
 
 
 def get_media_info(filepath):
