@@ -1,19 +1,29 @@
 import os
 import time
 
+from modules.filter import FileFilter
+from modules.utils import get_media_info
+
 
 def scan_directory(task, state_manager, logger):
     """
-    扫描目录，根据修改时间和大小变化筛选文件
+    扫描目录，根据修改时间、文件大小、以及各类过滤条件筛选文件
     """
     source_dir = task["source_dir"]
-    file_mtime = task.get("file_mtime", 0)
+    
+    # 提取 filter 配置
+    filter_config = task.get("filter", {})
+    file_mtime = filter_config.get("file_mtime", 0)
+    input_formats = filter_config.get("input_formats", [".mp4"])
+    direct_move_formats = filter_config.get("direct_move_formats", [])
+    
     failure_count = task.get("failure_count", 3)
-    input_formats = task.get("input_formats", [".mp4"])
-    direct_move_formats = task.get("direct_move_formats", [])
     allowed_formats = input_formats + direct_move_formats
     remove_source = task.get("remove_source", False)
     source_expired_minutes = task.get("source_expired_minutes", 0)
+
+    # 实例化 file filter
+    file_filter = FileFilter(filter_config)
 
     valid_files = []
     if not os.path.exists(source_dir):
@@ -63,6 +73,25 @@ def scan_directory(task, state_manager, logger):
 
                 # 检查修改时间是否久于 file_mtime
                 if file_mtime > 0 and (current_time - mtime) < file_mtime:
+                    continue
+
+                # 检查是否因条件过滤而被标记跳过
+                skipped_mtime = state_manager.get_filter_skipped_mtime(filepath)
+                if skipped_mtime is not None and skipped_mtime == mtime:
+                    # 文件没有被修改过，且之前已经被条件过滤掉了，直接跳过
+                    continue
+
+                # 读取媒体信息进行进一步过滤
+                media_info = {"size": stat.st_size}
+                
+                # 若需要除了 size 外的媒体信息，则调用 ffprobe
+                if file_filter.requires_media_info():
+                    media_info = get_media_info(filepath)
+                    media_info["size"] = stat.st_size
+                
+                if not file_filter.match(media_info):
+                    # 记录为不符合过滤条件
+                    state_manager.mark_filter_skipped(filepath, mtime)
                     continue
 
                 candidates.append((filepath, stat.st_size))

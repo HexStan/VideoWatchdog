@@ -83,6 +83,22 @@ class StateManager:
             return None
         return val.get("success_time", None)
 
+    def mark_filter_skipped(self, filepath, mtime):
+        """记录文件因未通过过滤条件而被跳过，并缓存文件当时的修改时间"""
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            val = {"failures": val, "ffmpeg_failures": 0}
+        val["filter_skipped_mtime"] = mtime
+        self.state[filepath] = val
+        self._save()
+
+    def get_filter_skipped_mtime(self, filepath):
+        """获取文件被条件过滤跳过时的 mtime，如果没有则返回 None"""
+        val = self.state.get(filepath, {})
+        if isinstance(val, int):
+            return None
+        return val.get("filter_skipped_mtime", None)
+
     def remove_record(self, filepath):
         """完全删除指定文件的记录"""
         if filepath in self.state:

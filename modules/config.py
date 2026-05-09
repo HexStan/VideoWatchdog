@@ -42,30 +42,35 @@ class Config:
                 if key not in task:
                     raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
 
-            # Set defaults for optional keys
-            task.setdefault("file_mtime", 0)
+            # 初始化并处理 filter 块
+            task.setdefault("filter", {})
+            f_config = task["filter"]
+
+            # Set defaults for optional keys in both root and filter
+            f_config.setdefault("file_mtime", 0)
+            f_config.setdefault("input_formats", ["mp4"])
+            f_config.setdefault("direct_move_formats", [])
+
             task.setdefault("stable_duration", 0)
             task.setdefault("failure_count", 3)
             task.setdefault("fallback_count", 0)
             task.setdefault("ffmpeg_cmd_fallback", "")
             task.setdefault("name", f"Task {i}")
-            task.setdefault("input_formats", ["mp4"])
-            task.setdefault("direct_move_formats", [])
 
             # 确保 input_formats 具有前导点
-            task["input_formats"] = [
+            f_config["input_formats"] = [
                 ext if ext.startswith(".") else f".{ext}"
-                for ext in task["input_formats"]
+                for ext in f_config["input_formats"]
             ]
 
             # 确保 direct_move_formats 具有前导点
-            task["direct_move_formats"] = [
+            f_config["direct_move_formats"] = [
                 ext if ext.startswith(".") else f".{ext}"
-                for ext in task["direct_move_formats"]
+                for ext in f_config["direct_move_formats"]
             ]
 
             # 检查 input_formats 和 direct_move_formats 是否有重复
-            overlap = set(task["input_formats"]) & set(task["direct_move_formats"])
+            overlap = set(f_config["input_formats"]) & set(f_config["direct_move_formats"])
             if overlap:
                 raise ValueError(f"任务 {i} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}")
 

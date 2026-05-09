@@ -78,12 +78,24 @@ dest_dir = "./dest"              # Directory for processed output files
 backup_dir = "./backup"          # Directory to move source files after processing (required when remove_source = false)
 remove_source = false            # If true, ignores backup_dir and deletes the source file directly after processing
 source_expired_minutes = 0       # Only available when remove_source = true. If non-zero, leaves the source file in source_dir for the specified minutes before deleting it
-input_formats = ["mp4", "mkv"]   # File formats to monitor
-direct_move_formats = ["txt", "log"] # Files with these formats will not stay in source_dir, but will be moved directly to dest_dir (cannot overlap with input_formats)
-file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
 stable_duration = 5              # File size stability detection time in seconds
 failure_count = 3                # Maximum number of retries on failure
 fallback_count = 3               # Number of FFmpeg errors before falling back to ffmpeg_cmd_fallback
+
+[tasks.filter]
+input_formats = ["mp4", "mkv"]   # File formats to monitor
+direct_move_formats = ["txt", "log"] # Files with these formats will not stay in source_dir, but will be moved directly to dest_dir (cannot overlap with input_formats)
+file_mtime = 300                 # File modification time threshold in seconds (ensures file has stopped modifying)
+# Optional filters (supports min/max or arrays)
+# size = { min = "1MB", max = "20GB" }
+# duration = { min = "10s", max = "2h" }
+# video_bitrate = { min = "100K", max = "10M" }
+# audio_bitrate = { min = "64K" }
+# total_bitrate = { min = "500K" }
+# framerate = { min = 24, max = 60 }
+# short_side = { min = 720, max = 1080 }
+# exclude_video_codecs = ["hevc"]
+# exclude_audio_codecs = ["aac"]
 
 # Custom FFmpeg command, {input} will be replaced with the source file path, {output} will be replaced with the base filename in the destination directory (without extension)
 ffmpeg_cmd = """

@@ -50,7 +50,8 @@ def process_file(filepath, task, state_manager, logger):
     remove_source = task.get("remove_source", False)
     source_expired_minutes = task.get("source_expired_minutes", 0)
     backup_dir = task.get("backup_dir", "")
-    direct_move_formats = task.get("direct_move_formats", [])
+    filter_config = task.get("filter", {})
+    direct_move_formats = filter_config.get("direct_move_formats", [])
 
     rel_dir = os.path.dirname(rel_path)
     final_dest_dir = os.path.join(dest_dir, rel_dir)
