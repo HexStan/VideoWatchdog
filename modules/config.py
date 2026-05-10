@@ -2,11 +2,15 @@ import os
 
 import toml
 
+from modules.task_config import TaskConfig
+
 
 class Config:
     def __init__(self, config_path="config/config.toml"):
         self.config_path = config_path
         self.data = self._load_config()
+        self._apply_env_overrides()
+        self._validate()
 
     def _load_config(self):
         if not os.path.exists(self.config_path):
@@ -21,61 +25,46 @@ class Config:
 
     @property
     def tasks(self):
-        return self.data.get("tasks", [])
+        return [
+            TaskConfig.from_dict(t, i)
+            for i, t in enumerate(self.data.get("tasks", []))
+        ]
 
-    def validate(self):
+    def _validate(self):
         if "global" not in self.data:
             raise ValueError("配置文件中缺失必要的 [global] 块。")
 
-        if not self.tasks:
+        if not self.data.get("tasks"):
             raise ValueError("配置文件中没有任何任务。")
 
-        for i, task in enumerate(self.tasks):
-            task.setdefault("remove_source", False)
-            task.setdefault("source_expired_minutes", 0)
+        tasks = self.tasks
+        if not tasks:
+            raise ValueError("配置文件中没有任何有效任务。")
 
-            required_keys = ["source_dir", "dest_dir", "ffmpeg_cmd"]
-            if not task["remove_source"]:
-                required_keys.append("backup_dir")
+    def _apply_env_overrides(self):
+        overrides = {
+            "global": {
+                "scan_interval": "VIDEOWATCHDOG_SCAN_INTERVAL",
+                "log_dir": "VIDEOWATCHDOG_LOG_DIR",
+                "max_log_files": "VIDEOWATCHDOG_MAX_LOG_FILES",
+            },
+            "task": {
+                "source_dir": "VIDEOWATCHDOG_SOURCE_DIR",
+                "dest_dir": "VIDEOWATCHDOG_DEST_DIR",
+                "backup_dir": "VIDEOWATCHDOG_BACKUP_DIR",
+            },
+        }
 
-            for key in required_keys:
-                if key not in task:
-                    raise ValueError(f"任务 {i} 中缺失了必要项: {key}")
+        for key, env_var in overrides["global"].items():
+            val = os.environ.get(env_var)
+            if val is not None:
+                try:
+                    self.data.setdefault("global", {})[key] = int(val)
+                except ValueError:
+                    self.data.setdefault("global", {})[key] = val
 
-            # 初始化并处理 filter 块
-            task.setdefault("filter", {})
-            f_config = task["filter"]
-
-            # Set defaults for optional keys in both root and filter
-            f_config.setdefault("file_mtime", 0)
-            f_config.setdefault("input_formats", ["mp4"])
-            f_config.setdefault("direct_move_formats", [])
-
-            task.setdefault("stable_duration", 0)
-            task.setdefault("failure_count", 3)
-            task.setdefault("fallback_count", 0)
-            task.setdefault("ffmpeg_cmd_fallback", "")
-            task.setdefault("name", f"Task {i}")
-
-            # 确保 input_formats 具有前导点
-            f_config["input_formats"] = [
-                ext if ext.startswith(".") else f".{ext}"
-                for ext in f_config["input_formats"]
-            ]
-
-            # 确保 direct_move_formats 具有前导点
-            f_config["direct_move_formats"] = [
-                ext if ext.startswith(".") else f".{ext}"
-                for ext in f_config["direct_move_formats"]
-            ]
-
-            # 检查 input_formats 和 direct_move_formats 是否有重复
-            overlap = set(f_config["input_formats"]) & set(
-                f_config["direct_move_formats"]
-            )
-            if overlap:
-                raise ValueError(
-                    f"任务 {i} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}"
-                )
-
-        return True
+        for task in self.data.get("tasks", []):
+            for key, env_var in overrides["task"].items():
+                val = os.environ.get(env_var)
+                if val is not None:
+                    task[key] = val

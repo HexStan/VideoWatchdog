@@ -9,18 +9,14 @@ import humanfriendly
 from modules.utils import get_media_duration, clean_empty_dirs
 
 
-def process_file(filepath, task, state_manager, logger):
-    """
-    处理单个文件：执行 FFmpeg，移动文件，记录日志和状态
-    """
-    task_name = task.get("name", "未命名")
-    source_dir = task["source_dir"]
+def process_file(entry, task_config, state_manager, logger):
+    filepath = entry.filepath
+    task_name = task_config.name
+    source_dir = task_config.source_dir
 
-    # 计算相对路径以保持目录结构
     rel_path = os.path.relpath(filepath, source_dir)
 
-    # 在处理前检查文件大小是否稳定
-    stable_duration = task.get("stable_duration", 0)
+    stable_duration = task_config.stable_duration
     if stable_duration > 0:
         try:
             old_size = os.path.getsize(filepath)
@@ -46,19 +42,17 @@ def process_file(filepath, task, state_manager, logger):
             logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
             return
 
-    dest_dir = task["dest_dir"]
-    remove_source = task.get("remove_source", False)
-    source_expired_minutes = task.get("source_expired_minutes", 0)
-    backup_dir = task.get("backup_dir", "")
-    filter_config = task.get("filter", {})
-    direct_move_formats = filter_config.get("direct_move_formats", [])
+    dest_dir = task_config.dest_dir
+    remove_source = task_config.remove_source
+    source_expired_minutes = task_config.source_expired_minutes
+    backup_dir = task_config.backup_dir
 
     rel_dir = os.path.dirname(rel_path)
     final_dest_dir = os.path.join(dest_dir, rel_dir)
     filename = os.path.basename(filepath)
     name, ext = os.path.splitext(filename)
 
-    if ext.lower() in [e.lower() for e in direct_move_formats]:
+    if entry.action == "direct_move":
         dst_filepath = os.path.join(final_dest_dir, filename)
         os.makedirs(final_dest_dir, exist_ok=True)
 
@@ -87,12 +81,13 @@ def process_file(filepath, task, state_manager, logger):
     # 记录转码前目标目录的文件列表，用于失败时清理不完整的输出文件
     existing_files = set(os.listdir(final_dest_dir))
 
-    # 获取音视频时长并格式化
-    duration = humanfriendly.format_timespan(get_media_duration(filepath))
+    if entry.media_info and "duration" in entry.media_info:
+        duration = humanfriendly.format_timespan(entry.media_info["duration"])
+    else:
+        duration = humanfriendly.format_timespan(get_media_duration(filepath))
 
-    # 检查是否需要使用 fallback 命令
-    fallback_count = task.get("fallback_count", 0)
-    ffmpeg_cmd_fallback = task.get("ffmpeg_cmd_fallback", "")
+    fallback_count = task_config.fallback_count
+    ffmpeg_cmd_fallback = task_config.ffmpeg_cmd_fallback
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
@@ -105,7 +100,7 @@ def process_file(filepath, task, state_manager, logger):
             f"【{task_name}】使用 fallback 命令转码 {rel_path}，媒体时长 {duration}。"
         )
     else:
-        raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=dst_basepath)
+        raw_cmd = task_config.ffmpeg_cmd.format(input=filepath, output=dst_basepath)
         logger.info(f"【{task_name}】开始转码 {rel_path}，媒体时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性

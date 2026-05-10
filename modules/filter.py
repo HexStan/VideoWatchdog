@@ -79,6 +79,14 @@ class FileFilter:
             c.lower() for c in self.config.get("exclude_audio_codecs", [])
         ]
 
+        self.input_formats = [
+            e.lower() for e in self.config.get("input_formats", [".mp4"])
+        ]
+        self.direct_move_formats = [
+            e.lower() for e in self.config.get("direct_move_formats", [])
+        ]
+        self.file_mtime = int(self.config.get("file_mtime", 0))
+
     def _get_range(self, key, boundary):
         val = self.config.get(key, {})
         if isinstance(val, dict):
@@ -161,3 +169,25 @@ class FileFilter:
                 self.exclude_acodecs,
             ]
         )
+
+    def classify_extension(self, ext):
+        """
+        根据扩展名判断文件分类。
+        返回 'direct_move'（直接移动）、'process'（需要转码处理）或 'reject'（跳过）。
+        """
+        if ext.lower() in self.direct_move_formats:
+            return "direct_move"
+        if ext.lower() in self.input_formats:
+            return "process"
+        return "reject"
+
+    def check_mtime(self, mtime, current_time):
+        """
+        检查文件修改时间是否满足阈值条件。
+        mtime: 文件的实际修改时间戳
+        current_time: 当前时间戳
+        返回 True 表示通过（文件已稳定），False 表示应跳过。
+        """
+        if self.file_mtime <= 0:
+            return True
+        return (current_time - mtime) >= self.file_mtime

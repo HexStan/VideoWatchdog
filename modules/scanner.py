@@ -1,110 +1,102 @@
 import os
 import time
+from dataclasses import dataclass, field
 
-from modules.filter import FileFilter
 from modules.utils import get_media_info
 
 
-def scan_directory(task, state_manager, logger):
-    """
-    扫描目录，根据修改时间、文件大小、以及各类过滤条件筛选文件
-    """
-    source_dir = task["source_dir"]
+@dataclass
+class ScanEntry:
+    filepath: str
+    action: str
+    size: int
+    media_info: dict | None = None
 
-    # 提取 filter 配置
-    filter_config = task.get("filter", {})
-    file_mtime = filter_config.get("file_mtime", 0)
-    input_formats = filter_config.get("input_formats", [".mp4"])
-    direct_move_formats = filter_config.get("direct_move_formats", [])
 
-    failure_count = task.get("failure_count", 3)
-    allowed_formats = input_formats + direct_move_formats
-    remove_source = task.get("remove_source", False)
-    source_expired_minutes = task.get("source_expired_minutes", 0)
+@dataclass
+class ScanReport:
+    entries: list = field(default_factory=list)
+    expired_files: list = field(default_factory=list)
 
-    # 实例化 file filter
-    file_filter = FileFilter(filter_config)
 
-    valid_files = []
-    if not os.path.exists(source_dir):
-        # 只有在第一次运行时才输出警告，避免重复日志
-        if not hasattr(scan_directory, "_warned_dirs"):
-            scan_directory._warned_dirs = set()
-        if source_dir not in scan_directory._warned_dirs:
-            logger.warning(f"目录不存在: {source_dir}")
-            scan_directory._warned_dirs.add(source_dir)
-        return valid_files
+class Scanner:
+    def __init__(self):
+        self._warned_dirs = set()
 
-    current_time = time.time()
-    candidates = []
+    def scan(self, task_config, state_manager, logger):
+        source_dir = task_config.source_dir
+        file_filter = task_config.filter
+        failure_count = task_config.failure_count
+        remove_source = task_config.remove_source
+        source_expired_minutes = task_config.source_expired_minutes
 
-    # 第一遍扫描：筛选出满足修改时间和重试次数条件的文件
-    for root, _, files in os.walk(source_dir):
-        for file in files:
-            # 检查文件扩展名
-            _, ext = os.path.splitext(file)
-            # 统一转换为小写进行比较（此时 ext 和 allowed_formats 都带有前导点）
-            if ext.lower() not in [e.lower() for e in allowed_formats]:
-                continue
+        report = ScanReport()
 
-            filepath = os.path.join(root, file)
+        if not os.path.exists(source_dir):
+            if source_dir not in self._warned_dirs:
+                logger.warning(f"目录不存在: {source_dir}")
+                self._warned_dirs.add(source_dir)
+            return report
 
-            # 检查是否已成功处理过
-            success_time = state_manager.get_success_time(filepath)
-            if success_time is not None:
-                if remove_source and source_expired_minutes > 0:
-                    if current_time - success_time >= source_expired_minutes * 60:
-                        try:
-                            os.remove(filepath)
-                            rel_path = os.path.relpath(filepath, source_dir)
-                            logger.info(f"已删除过期源文件: {rel_path}")
-                            state_manager.remove_record(filepath)
-                        except OSError as e:
-                            logger.error(f"删除过期源文件失败: {filepath}\n{e}")
-                continue
+        current_time = time.time()
+        task_name = task_config.name
 
-            # 检查失败次数
-            if state_manager.get_failures(filepath) >= failure_count:
-                continue
+        for root, _, files in os.walk(source_dir):
+            for file in files:
+                _, ext = os.path.splitext(file)
 
-            try:
-                stat = os.stat(filepath)
-                mtime = stat.st_mtime
-
-                # 检查修改时间是否久于 file_mtime
-                if file_mtime > 0 and (current_time - mtime) < file_mtime:
+                classification = file_filter.classify_extension(ext)
+                if classification == "reject":
                     continue
 
-                # 检查是否因条件过滤而被标记跳过
-                skipped_mtime = state_manager.get_filter_skipped_mtime(filepath)
-                if skipped_mtime is not None and skipped_mtime == mtime:
-                    # 文件没有被修改过，且之前已经被条件过滤掉了，直接跳过
+                filepath = os.path.join(root, file)
+
+                success_time = state_manager.get_success_time(filepath)
+                if success_time is not None:
+                    if remove_source and source_expired_minutes > 0:
+                        if current_time - success_time >= source_expired_minutes * 60:
+                            report.expired_files.append(filepath)
                     continue
 
-                # 读取媒体信息进行进一步过滤
-                media_info = {"size": stat.st_size}
-
-                # 若需要除了 size 外的媒体信息，则调用 ffprobe
-                if file_filter.requires_media_info():
-                    media_info = get_media_info(filepath)
-                    media_info["size"] = stat.st_size
-
-                if not file_filter.match(media_info):
-                    # 记录为不符合过滤条件
-                    state_manager.mark_filter_skipped(filepath, mtime)
+                if state_manager.get_failures(filepath) >= failure_count:
                     continue
 
-                candidates.append((filepath, stat.st_size))
-            except OSError as e:
-                logger.error(f"读取文件失败: {filepath}\n{e}")
+                try:
+                    stat = os.stat(filepath)
+                    file_mtime = stat.st_mtime
 
-    task_name = task.get("name", "未命名")
-    if candidates:
-        for filepath, _ in candidates:
-            rel_path = os.path.relpath(filepath, source_dir)
-            logger.info(f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}")
+                    if not file_filter.check_mtime(file_mtime, current_time):
+                        continue
 
-    # 将所有候选文件视为有效
-    valid_files = [c[0] for c in candidates]
+                    skipped_mtime = state_manager.get_filter_skipped_mtime(filepath)
+                    if skipped_mtime is not None and skipped_mtime == file_mtime:
+                        continue
 
-    return valid_files
+                    media_info = None
+
+                    if file_filter.requires_media_info():
+                        media_info = get_media_info(filepath)
+                        media_info["size"] = stat.st_size
+                    else:
+                        media_info = {"size": stat.st_size}
+
+                    if not file_filter.match(media_info):
+                        state_manager.mark_filter_skipped(filepath, file_mtime)
+                        continue
+
+                    entry = ScanEntry(
+                        filepath=filepath,
+                        action=classification,
+                        size=stat.st_size,
+                        media_info=media_info,
+                    )
+                    report.entries.append(entry)
+                except OSError as e:
+                    logger.error(f"读取文件失败: {filepath}\n{e}")
+
+        if report.entries:
+            for entry in report.entries:
+                rel_path = os.path.relpath(entry.filepath, source_dir)
+                logger.info(f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}")
+
+        return report
