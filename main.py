@@ -45,7 +45,9 @@ def cleanup_expired_files(expired_files, state_manager, logger):
             logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
 
-def run_task(task_config, scanner, state_manager, logger, scan_interval, monitoring_logged):
+def run_task(
+    task_config, scanner, state_manager, logger, scan_interval, monitoring_logged
+):
     report = scanner.scan(task_config, state_manager, logger)
 
     if report.expired_files:
@@ -71,9 +73,12 @@ def run_task(task_config, scanner, state_manager, logger, scan_interval, monitor
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="VideoWatchdog - 视频文件监听与转码工具")
+    parser = argparse.ArgumentParser(
+        description="VideoWatchdog - 视频文件监听与转码工具"
+    )
     parser.add_argument(
-        "-c", "--config",
+        "-c",
+        "--config",
         default="config/config.toml",
         help="配置文件路径 (默认: config/config.toml)",
     )
@@ -121,14 +126,28 @@ def main():
     if scan_interval == 0:
         logger.info("全局扫描间隔为 0，作为一次性任务执行。")
         for task_config in tasks:
-            run_task(task_config, scanner, state_manager, logger, scan_interval, monitoring_logged)
+            run_task(
+                task_config,
+                scanner,
+                state_manager,
+                logger,
+                scan_interval,
+                monitoring_logged,
+            )
         logger.info("所有任务完成。")
     else:
         logger.info("VideoWatchdog 已进入监听模式。")
         try:
             while True:
                 for task_config in tasks:
-                    run_task(task_config, scanner, state_manager, logger, scan_interval, monitoring_logged)
+                    run_task(
+                        task_config,
+                        scanner,
+                        state_manager,
+                        logger,
+                        scan_interval,
+                        monitoring_logged,
+                    )
                 time.sleep(scan_interval)
         except KeyboardInterrupt:
             logger.info("VideoWatchdog 接收到退出信号，正在退出……")

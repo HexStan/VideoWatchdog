@@ -97,6 +97,8 @@ class Scanner:
         if report.entries:
             for entry in report.entries:
                 rel_path = os.path.relpath(entry.filepath, source_dir)
-                logger.info(f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}")
+                logger.info(
+                    f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}"
+                )
 
         return report

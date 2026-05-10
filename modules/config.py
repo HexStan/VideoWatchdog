@@ -26,8 +26,7 @@ class Config:
     @property
     def tasks(self):
         return [
-            TaskConfig.from_dict(t, i)
-            for i, t in enumerate(self.data.get("tasks", []))
+            TaskConfig.from_dict(t, i) for i, t in enumerate(self.data.get("tasks", []))
         ]
 
     def _validate(self):
