@@ -51,6 +51,14 @@ class FileFilter:
     def __init__(self, filter_config):
         self.config = filter_config
 
+        self.input_formats = [
+            e.lower() for e in self.config.get("input_formats", [".mp4"])
+        ]
+        self.direct_move_formats = [
+            e.lower() for e in self.config.get("direct_move_formats", [])
+        ]
+        self.file_mtime = int(self.config.get("file_mtime", 0))
+
         self.size_min = parse_size(self._get_range("size", "min"))
         self.size_max = parse_size(self._get_range("size", "max"))
 
@@ -78,14 +86,6 @@ class FileFilter:
         self.exclude_acodecs = [
             c.lower() for c in self.config.get("exclude_audio_codecs", [])
         ]
-
-        self.input_formats = [
-            e.lower() for e in self.config.get("input_formats", [".mp4"])
-        ]
-        self.direct_move_formats = [
-            e.lower() for e in self.config.get("direct_move_formats", [])
-        ]
-        self.file_mtime = int(self.config.get("file_mtime", 0))
 
     def _get_range(self, key, boundary):
         val = self.config.get(key, {})
