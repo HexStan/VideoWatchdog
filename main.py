@@ -1,11 +1,10 @@
 import argparse
-import os
 import sys
 import time
 
 from modules.config import Config
 from modules.logger import setup_logger
-from modules.processor import process_file
+from modules.processor import process_file, cleanup_expired_files
 from modules.scanner import Scanner
 from modules.state import StateManager
 
@@ -33,16 +32,6 @@ def acquire_lock():
     except IOError:
         print("另一个实例正在运行，已退出。")
         sys.exit(1)
-
-
-def cleanup_expired_files(expired_files, state_manager, logger):
-    for filepath in expired_files:
-        try:
-            os.remove(filepath)
-            logger.info(f"已删除过期源文件: {filepath}")
-            state_manager.remove_record(filepath)
-        except OSError as e:
-            logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
 
 def run_task(

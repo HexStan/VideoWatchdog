@@ -9,6 +9,16 @@ import humanfriendly
 from modules.utils import get_media_duration, clean_empty_dirs
 
 
+def cleanup_expired_files(expired_files, state_manager, logger):
+    for filepath in expired_files:
+        try:
+            os.remove(filepath)
+            logger.info(f"已删除过期源文件: {filepath}")
+            state_manager.remove_record(filepath)
+        except OSError as e:
+            logger.error(f"删除过期源文件失败: {filepath}\n{e}")
+
+
 def process_file(entry, task_config, state_manager, logger):
     filepath = entry.filepath
     task_name = task_config.name
