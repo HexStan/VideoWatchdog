@@ -88,7 +88,7 @@ def process_file(entry, task_config, state_manager, logger):
     # 确保输出目录存在
     os.makedirs(final_dest_dir, exist_ok=True)
 
-    # 记录转码前目标目录的文件列表，用于失败时清理不完整的输出文件
+    # 记录处理前目标目录的文件列表，用于失败时清理不完整的输出文件
     existing_files = set(os.listdir(final_dest_dir))
 
     if entry.media_info and "duration" in entry.media_info:
@@ -107,11 +107,11 @@ def process_file(entry, task_config, state_manager, logger):
     if use_fallback:
         raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_basepath)
         logger.info(
-            f"【{task_name}】使用 fallback 命令转码 {rel_path}，媒体时长 {duration}。"
+            f"【{task_name}】使用 fallback 命令处理 {rel_path}，媒体时长 {duration}。"
         )
     else:
         raw_cmd = task_config.ffmpeg_cmd.format(input=filepath, output=dst_basepath)
-        logger.info(f"【{task_name}】开始转码 {rel_path}，媒体时长 {duration}。")
+        logger.info(f"【{task_name}】开始处理 {rel_path}，媒体时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace("\n", " ").replace("\r", " ")
@@ -180,7 +180,7 @@ def process_file(entry, task_config, state_manager, logger):
 
         if process.returncode == 0:
             logger.info(
-                f"【{task_name}】转码成功，输出至 {dest_dir}，耗时 {humanfriendly.format_timespan(elapsed_time)}。"
+                f"【{task_name}】处理成功，输出至 {dest_dir}，耗时 {humanfriendly.format_timespan(elapsed_time)}。"
             )
             if final_status:
                 logger.info(f"【{task_name}】FFmpeg 运行报告: {final_status}")
@@ -212,7 +212,7 @@ def process_file(entry, task_config, state_manager, logger):
             clean_empty_dirs(source_dir)
         else:
             error_msg = "\n".join(error_output[-20:])  # 只取最后20行错误信息
-            logger.error(f"【{task_name}】转码失败，原因:\n{error_msg}")
+            logger.error(f"【{task_name}】处理失败，原因:\n{error_msg}")
 
             # 增加失败次数
             if use_fallback:

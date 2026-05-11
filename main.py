@@ -63,7 +63,7 @@ def run_task(
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="VideoWatchdog - 视频文件监听与转码工具"
+        description="VideoWatchdog - 音视频文件监听与处理工具"
     )
     parser.add_argument(
         "-c",

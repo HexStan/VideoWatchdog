@@ -173,7 +173,7 @@ class FileFilter:
     def classify_extension(self, ext):
         """
         根据扩展名判断文件分类。
-        返回 'direct_move'（直接移动）、'process'（需要转码处理）或 'reject'（跳过）。
+        返回 'direct_move'（直接移动）、'process'（需要处理）或 'reject'（跳过）。
         """
         if ext.lower() in self.direct_move_formats:
             return "direct_move"
