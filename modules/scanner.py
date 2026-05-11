@@ -74,15 +74,16 @@ class Scanner:
 
                     media_info = None
 
-                    if file_filter.requires_media_info():
-                        media_info = get_media_info(filepath)
-                        media_info["size"] = stat.st_size
-                    else:
-                        media_info = {"size": stat.st_size}
+                    if classification != "direct_move":
+                        if file_filter.requires_media_info():
+                            media_info = get_media_info(filepath)
+                            media_info["size"] = stat.st_size
+                        else:
+                            media_info = {"size": stat.st_size}
 
-                    if not file_filter.match(media_info):
-                        state_manager.mark_filter_skipped(filepath, file_mtime)
-                        continue
+                        if not file_filter.match(media_info):
+                            state_manager.mark_filter_skipped(filepath, file_mtime)
+                            continue
 
                     entry = ScanEntry(
                         filepath=filepath,

@@ -14,11 +14,10 @@ name = "Task 1"     # 【选填】任务名称
 source_dir = "./source"    # 【必填】需要监听的目录 (源目录)
 dest_dir = "./dest"        # 【必填】目标目录
 backup_dir = "./backup"    # 【需要永久保留源文件则必填】处理完成后源文件的备份目录
+stable_duration = 5           # 【选填】检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
 remove_source = false         # 【选填】如果为 true 则忽略 backup_dir，在处理完音视频后直接删除源文件
 source_expired_minutes = 0    # 【选填】仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
-
-stable_duration = 5                      # 【选填】检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
 failure_count = 3     # 【选填】最多重试次数
 fallback_count = 3    # 【选填】FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
@@ -47,7 +46,7 @@ ffmpeg -y \
 # 【选填】文件过滤与匹配设置
 # [tasks.filter]
 # input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
-# direct_move_formats = ["txt", "log"]     # 对应格式的文件不会留在 source_dir，而是直接移动到 dest_dir（不能与 input_formats 重复）
+# direct_move_formats = ["txt", "log"]     # 对应格式的文件不会留在 source_dir，而是直接移动到 dest_dir（不能与 input_formats 重复），且不匹配 file_mtime 以外的其他条件。
 
 # file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
 # size = { min = "0", max = "20GB" }
