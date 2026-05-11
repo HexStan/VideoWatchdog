@@ -98,9 +98,11 @@ def main():
     global_cfg = config.global_config
 
     log_dir = args.log_dir or global_cfg.get("log_dir", "logs")
+    log_level = global_cfg.get("log_level", "INFO")
     logger = setup_logger(
         log_dir=log_dir,
         max_log_files=global_cfg.get("max_log_files", 7),
+        log_level=log_level,
     )
 
     state_manager = StateManager(args.state_file)

@@ -34,22 +34,22 @@ class DailyRotatingFileHandler(logging.FileHandler):
         super().emit(record)
 
 
-def setup_logger(log_dir="logs", max_log_files=7):
+def setup_logger(log_dir="logs", max_log_files=7, log_level="INFO"):
     if not os.path.exists(log_dir):
         os.makedirs(log_dir)
 
     logger = logging.getLogger("VideoWatchdog")
-    logger.setLevel(logging.INFO)
+    logger.setLevel(getattr(logging, log_level.upper(), logging.INFO))
 
     # 避免重复添加 handler
     if not logger.handlers:
         # 文件输出
         fh = DailyRotatingFileHandler(log_dir, max_log_files, encoding="utf-8")
-        fh.setLevel(logging.INFO)
+        fh.setLevel(getattr(logging, log_level.upper(), logging.INFO))
 
         # 控制台输出
         ch = logging.StreamHandler()
-        ch.setLevel(logging.INFO)
+        ch.setLevel(getattr(logging, log_level.upper(), logging.INFO))
 
         # 格式化
         formatter = logging.Formatter(

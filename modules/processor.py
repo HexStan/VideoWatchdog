@@ -32,20 +32,31 @@ def process_file(entry, task_config, state_manager, logger):
             old_size = os.path.getsize(filepath)
         except OSError:
             logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
+            logger.debug(
+                f"【{task_name}】跳过 {rel_path}，原因: 执行稳定性检查时文件已不存在"
+            )
             return
 
         logger.info(
             f"【{task_name}】正在检查 {rel_path} 在 {stable_duration} 秒内的一致性……"
         )
+        logger.debug(f"【{task_name}】{rel_path} 稳定性检查前大小: {old_size} 字节")
         time.sleep(stable_duration)
 
         try:
             new_size = os.path.getsize(filepath)
+            logger.debug(f"【{task_name}】{rel_path} 稳定性检查后大小: {new_size} 字节")
             if new_size != old_size:
                 logger.info(f"【{task_name}】文件 {rel_path} 正在变化，跳过本次处理。")
+                logger.debug(
+                    f"【{task_name}】跳过 {rel_path}，原因: 文件大小从 {old_size} 变为 {new_size}，文件仍在变化中"
+                )
                 return
         except OSError:
             logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
+            logger.debug(
+                f"【{task_name}】跳过 {rel_path}，原因: 稳定性检查后文件已不存在"
+            )
             return
     else:
         if not os.path.exists(filepath):
@@ -94,6 +105,7 @@ def process_file(entry, task_config, state_manager, logger):
     if entry.media_info and "duration" in entry.media_info:
         duration = humanfriendly.format_timespan(entry.media_info["duration"])
     else:
+        logger.debug(f"【{task_name}】未预获取媒体时长，通过 ffprobe 获取: {rel_path}")
         duration = humanfriendly.format_timespan(get_media_duration(filepath))
 
     fallback_count = task_config.fallback_count
@@ -115,6 +127,8 @@ def process_file(entry, task_config, state_manager, logger):
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace("\n", " ").replace("\r", " ")
+
+    logger.debug(f"【{task_name}】执行 FFmpeg 命令: {cmd}")
 
     start_time = time.time()
     try:
@@ -199,10 +213,11 @@ def process_file(entry, task_config, state_manager, logger):
                         f"【{task_name}】源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
                     )
             else:
-                # 确保目标目录存在
                 os.makedirs(bak_dir, exist_ok=True)
 
-                # 移动源文件到 backup_dir
+                logger.debug(
+                    f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
+                )
                 shutil.move(filepath, bak_filepath)
 
                 # 重置失败记录

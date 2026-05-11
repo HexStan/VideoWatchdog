@@ -46,6 +46,7 @@ class Config:
                 "scan_interval": "VIDEOWATCHDOG_SCAN_INTERVAL",
                 "log_dir": "VIDEOWATCHDOG_LOG_DIR",
                 "max_log_files": "VIDEOWATCHDOG_MAX_LOG_FILES",
+                "log_level": "VIDEOWATCHDOG_LOG_LEVEL",
             },
             "task": {
                 "source_dir": "VIDEOWATCHDOG_SOURCE_DIR",

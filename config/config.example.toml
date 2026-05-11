@@ -4,6 +4,7 @@ scan_interval = 0    # 遍历时间间隔（秒），为0则作为一次性脚�
 
 log_dir = "logs"     # 日志保存目录，默认当前目录
 max_log_files = 7    # 最多保留的日志文件数，超过后会删除最早的日志
+log_level = "INFO"   # 日志等级，可选: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # ==================================================
 
