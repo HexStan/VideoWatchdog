@@ -83,13 +83,6 @@ class Scanner:
                         )
                         continue
 
-                    skipped_mtime = state_manager.get_filter_skipped_mtime(filepath)
-                    if skipped_mtime is not None and skipped_mtime == file_mtime:
-                        logger.debug(
-                            f"【{task_name}】跳过 {rel_path}，原因: 文件之前已被过滤条件拒绝且 mtime 未变化"
-                        )
-                        continue
-
                     media_info = None
 
                     if classification != "direct_move":
@@ -103,7 +96,6 @@ class Scanner:
                         if not file_filter.match(
                             media_info, logger, rel_path, task_name
                         ):
-                            state_manager.mark_filter_skipped(filepath, file_mtime)
                             continue
 
                     entry = ScanEntry(
@@ -113,17 +105,13 @@ class Scanner:
                         media_info=media_info,
                     )
                     report.entries.append(entry)
+                    logger.info(
+                        f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}"
+                    )
                     logger.debug(
                         f"【{task_name}】{rel_path} 进入处理队列 (动作: {classification})"
                     )
                 except OSError as e:
                     logger.error(f"读取文件失败: {filepath}\n{e}")
-
-        if report.entries:
-            for entry in report.entries:
-                rel_path = os.path.relpath(entry.filepath, source_dir)
-                logger.info(
-                    f"【{task_name}】在 {source_dir} 中监测到新文件: {rel_path}"
-                )
 
         return report
