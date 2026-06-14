@@ -4,25 +4,26 @@ scan_interval = 0    # 遍历时间间隔（秒），为0则作为一次性脚�
 
 log_dir = "logs"     # 日志保存目录，默认当前目录
 max_log_files = 7    # 最多保留的日志文件数，超过后会删除最早的日志
+log_level = "INFO"   # 日志等级，可选: DEBUG, INFO, WARNING, ERROR, CRITICAL
 
 # ==================================================
 
 # 允许配置多组任务，这里是第一组任务
 [[tasks]]
-name = "Task 1"
+name = "Task 1"     # 【选填】任务名称
 
-source_dir = "./source"    # 指定监听目录 (待处理目录)，必填
-dest_dir = "./dest"        # 指定输出目录，必填
-backup_dir = "./backup"    # 指定处理完成后的源文件移动目录，必填
+source_dir = "./source"    # 【必填】需要监听的目录 (源目录)
+dest_dir = "./dest"        # 【必填】目标目录
+backup_dir = "./backup"    # 【需要永久保留源文件则必填】处理完成后源文件的备份目录
+stable_duration = 5           # 【选填】检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
-input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
-file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
-stable_duration = 5                      # 检测文件大小变化的时间间隔（秒），为0则不检测大小变化
+remove_source = false         # 【选填】如果为 true 则忽略 backup_dir，在处理完音视频后直接删除源文件
+source_expired_minutes = 0    # 【选填】仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
 
-failure_count = 3     # 最多重试次数
-fallback_count = 3    # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
+failure_count = 3     # 【选填】最多重试次数
+fallback_count = 3    # 【选填】FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
 
-# 要执行的FFMpeg命令，{input} 和 {output} 会被自动替换为实际路径，必填
+# 【必填】要执行的FFmpeg命令，{input} 会被替换为源文件路径，{output} 会被替换为目标目录下的基础文件名（不含扩展名）
 # 支持多行命令，执行时会自动合并为单行
 ffmpeg_cmd = """
 ffmpeg -y \
@@ -30,25 +31,39 @@ ffmpeg -y \
   -c:v libx264 \
   -preset fast \
   -crf 23 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
 
-# 备用 FFMpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
+# 【选填】备用 FFmpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
 ffmpeg_cmd_fallback = """
 ffmpeg -y \
   -i "{input}" \
   -c:v libx264 \
   -preset medium \
   -crf 28 \
-  "{output}"
+  "{output}-encoded.mp4"
 """
 
-output_suffix = "encoded"    # 输出文件名的后缀
-output_format = "mp4"        # 输出文件的格式
+# 【选填】文件过滤与匹配设置
+# [tasks.filter]
+# input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
+# direct_move_formats = ["txt", "log"]     # 对应格式的文件不会留在 source_dir，而是直接移动到 dest_dir（不能与 input_formats 重复），且不匹配 file_mtime 以外的其他条件。
+
+# file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
+# size = { min = "0", max = "20GB" }
+
+# duration = { min = "10s", max = "0" }
+# video_bitrate = { min = "100K" }
+# audio_bitrate = { min = "64K"}
+# total_bitrate = { min = "500K", max = "30M" }
+# framerate = { min = 24, max = 60 }
+# short_side = { min = 720, max = 1080 }
+# exclude_video_codecs = ["hevc", "av1"]
+# exclude_audio_codecs = ["opus"]
 
 # ==================================================
 
-# 第二组任务示例 (可选)
+# 第二组任务示例
 # [[tasks]]
 # name = "Task 2"
 # source_dir = "./input-2"
@@ -59,5 +74,5 @@ output_format = "mp4"        # 输出文件的格式
 #   -i "{input}" \
 #   -c:a aac \
 #   -b:a 128k \
-#   "{output}"
+#   "{output}.m4a"
 # """

@@ -16,15 +16,29 @@ RUN if [ -f /etc/apt/sources.list.d/debian.sources ]; then \
 # nvidia-vaapi-driver: NVIDIA VAAPI (仅 amd64)
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
-    ffmpeg \
     vainfo \
-    mesa-va-drivers && \
+    mesa-va-drivers \
+    wget \
+    xz-utils && \
     ARCH=$(dpkg --print-architecture) && \
+    # ==============================
     if [ "$ARCH" = "amd64" ]; then \
     apt-get install -y --no-install-recommends \
     intel-media-va-driver-non-free \
     nvidia-vaapi-driver; \
+    FFMPEG_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz"; \
+    FFMPEG_DIR="ffmpeg-n8.1-latest-linux64-gpl-8.1"; \
+    # -----------------------------
+    elif [ "$ARCH" = "arm64" ]; then \
+    FFMPEG_URL="https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n8.1-latest-linuxarm64-gpl-8.1.tar.xz"; \
+    FFMPEG_DIR="ffmpeg-n8.1-latest-linuxarm64-gpl-8.1"; \
     fi && \
+    # ==============================
+    wget -qO /tmp/ffmpeg.tar.xz "$FFMPEG_URL" && \
+    tar -xf /tmp/ffmpeg.tar.xz -C /tmp && \
+    chmod +x /tmp/$FFMPEG_DIR/bin/* && \
+    cp -a /tmp/$FFMPEG_DIR/bin/* /usr/local/bin/ && \
+    rm -rf /tmp/ffmpeg.tar.xz /tmp/$FFMPEG_DIR && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录

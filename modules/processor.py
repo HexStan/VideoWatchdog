@@ -6,68 +6,110 @@ import time
 
 import humanfriendly
 
-from modules.utils import get_video_duration, clean_empty_dirs
+from modules.utils import get_media_duration, clean_empty_dirs
 
 
-def process_file(filepath, task, state_manager, logger):
-    """
-    处理单个文件：执行 FFmpeg，移动文件，记录日志和状态
-    """
-    source_dir = task["source_dir"]
+def cleanup_expired_files(expired_files, state_manager, logger):
+    for filepath in expired_files:
+        try:
+            os.remove(filepath)
+            logger.info(f"已删除过期源文件: {filepath}")
+            state_manager.remove_record(filepath)
+        except OSError as e:
+            logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
-    # 计算相对路径以保持目录结构
+
+def process_file(entry, task_config, state_manager, logger):
+    filepath = entry.filepath
+    task_name = task_config.name
+    source_dir = task_config.source_dir
+
     rel_path = os.path.relpath(filepath, source_dir)
 
-    # 在处理前检查文件大小是否稳定
-    stable_duration = task.get("stable_duration", 0)
+    stable_duration = task_config.stable_duration
     if stable_duration > 0:
         try:
             old_size = os.path.getsize(filepath)
         except OSError:
-            logger.warning(f"文件 {rel_path} 已不存在，跳过处理。")
+            logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
+            logger.debug(
+                f"【{task_name}】跳过 {rel_path}，原因: 执行稳定性检查时文件已不存在"
+            )
             return
 
-        logger.info(f"正在检查 {rel_path} 在 {stable_duration} 秒内的一致性……")
+        logger.info(
+            f"【{task_name}】正在检查 {rel_path} 在 {stable_duration} 秒内的一致性……"
+        )
+        logger.debug(f"【{task_name}】{rel_path} 稳定性检查前大小: {old_size} 字节")
         time.sleep(stable_duration)
 
         try:
             new_size = os.path.getsize(filepath)
+            logger.debug(f"【{task_name}】{rel_path} 稳定性检查后大小: {new_size} 字节")
             if new_size != old_size:
-                logger.info(f"文件 {rel_path} 正在变化，跳过本次处理。")
+                logger.info(f"【{task_name}】文件 {rel_path} 正在变化，跳过本次处理。")
+                logger.debug(
+                    f"【{task_name}】跳过 {rel_path}，原因: 文件大小从 {old_size} 变为 {new_size}，文件仍在变化中"
+                )
                 return
         except OSError:
-            logger.warning(f"文件 {rel_path} 已不存在，跳过处理。")
+            logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
+            logger.debug(
+                f"【{task_name}】跳过 {rel_path}，原因: 稳定性检查后文件已不存在"
+            )
             return
     else:
         if not os.path.exists(filepath):
-            logger.warning(f"文件 {rel_path} 已不存在，跳过处理。")
+            logger.warning(f"【{task_name}】文件 {rel_path} 已不存在，跳过处理。")
             return
 
-    dest_dir = task["dest_dir"]
-    backup_dir = task["backup_dir"]
+    dest_dir = task_config.dest_dir
+    remove_source = task_config.remove_source
+    source_expired_minutes = task_config.source_expired_minutes
+    backup_dir = task_config.backup_dir
 
     rel_dir = os.path.dirname(rel_path)
+    final_dest_dir = os.path.join(dest_dir, rel_dir)
     filename = os.path.basename(filepath)
-    name, _ = os.path.splitext(filename)
+    name, ext = os.path.splitext(filename)
 
-    # 构造输出文件名：原文件名-后缀.格式
-    dst_filename = f"{name}-{task['output_suffix']}.{task['output_format']}"
-    dst_dir = os.path.join(dest_dir, rel_dir)
-    dst_filepath = os.path.join(dst_dir, dst_filename)
+    if entry.action == "direct_move":
+        dst_filepath = os.path.join(final_dest_dir, filename)
+        os.makedirs(final_dest_dir, exist_ok=True)
 
-    # 构造完成后的源文件移动路径
-    bak_dir = os.path.join(backup_dir, rel_dir)
-    bak_filepath = os.path.join(bak_dir, filename)
+        try:
+            logger.info(f"【{task_name}】直接移动文件 {rel_path} 至 {dest_dir}")
+            shutil.move(filepath, dst_filepath)
+            state_manager.reset_failure(filepath)
+            # 清理 source_dir 中的空文件夹
+            clean_empty_dirs(source_dir)
+        except Exception as e:
+            logger.error(f"【{task_name}】直接移动文件失败: {rel_path}\n{e}")
+            state_manager.increment_failure(filepath)
+        return
+
+    # 构造输出文件基础路径（不含扩展名）
+    dst_basepath = os.path.join(final_dest_dir, name)
+
+    # 构造备份路径
+    if not remove_source:
+        bak_dir = os.path.join(backup_dir, rel_dir)
+        bak_filepath = os.path.join(bak_dir, filename)
 
     # 确保输出目录存在
-    os.makedirs(dst_dir, exist_ok=True)
+    os.makedirs(final_dest_dir, exist_ok=True)
 
-    # 获取视频时长并格式化
-    duration = humanfriendly.format_timespan(get_video_duration(filepath))
+    # 记录处理前目标目录的文件列表，用于失败时清理不完整的输出文件
+    existing_files = set(os.listdir(final_dest_dir))
 
-    # 检查是否需要使用 fallback 命令
-    fallback_count = task.get("fallback_count", 0)
-    ffmpeg_cmd_fallback = task.get("ffmpeg_cmd_fallback", "")
+    if entry.media_info and "duration" in entry.media_info:
+        duration = humanfriendly.format_timespan(entry.media_info["duration"])
+    else:
+        logger.debug(f"【{task_name}】未预获取媒体时长，通过 ffprobe 获取: {rel_path}")
+        duration = humanfriendly.format_timespan(get_media_duration(filepath))
+
+    fallback_count = task_config.fallback_count
+    ffmpeg_cmd_fallback = task_config.ffmpeg_cmd_fallback
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
@@ -75,14 +117,18 @@ def process_file(filepath, task, state_manager, logger):
             use_fallback = True
 
     if use_fallback:
-        raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_filepath)
-        logger.info(f"使用 fallback 命令转码 {rel_path}，视频时长 {duration}。")
+        raw_cmd = ffmpeg_cmd_fallback.format(input=filepath, output=dst_basepath)
+        logger.info(
+            f"【{task_name}】使用 fallback 命令处理 {rel_path}，媒体时长 {duration}。"
+        )
     else:
-        raw_cmd = task["ffmpeg_cmd"].format(input=filepath, output=dst_filepath)
-        logger.info(f"开始转码 {rel_path}，视频时长 {duration}。")
+        raw_cmd = task_config.ffmpeg_cmd.format(input=filepath, output=dst_basepath)
+        logger.info(f"【{task_name}】开始处理 {rel_path}，媒体时长 {duration}。")
 
     # 将多行命令合并为单行，替换换行符为空格，以支持在配置文件中换行提高可读性
     cmd = raw_cmd.replace("\n", " ").replace("\r", " ")
+
+    logger.debug(f"【{task_name}】执行 FFmpeg 命令: {cmd}")
 
     start_time = time.time()
     try:
@@ -147,27 +193,41 @@ def process_file(filepath, task, state_manager, logger):
         elapsed_time = time.time() - start_time
 
         if process.returncode == 0:
-            # dst_rel_path = os.path.relpath(dst_filepath, source_dir)
             logger.info(
-                f"转码成功，耗时 {humanfriendly.format_timespan(elapsed_time)}。"
+                f"【{task_name}】处理成功，输出至 {dest_dir}，耗时 {humanfriendly.format_timespan(elapsed_time)}。"
             )
             if final_status:
-                logger.info(f"FFmpeg 运行报告: {final_status}")
+                logger.info(f"【{task_name}】FFmpeg 运行报告: {final_status}")
 
-            # 确保目标目录存在
-            os.makedirs(bak_dir, exist_ok=True)
+            if remove_source:
+                if source_expired_minutes == 0:
+                    try:
+                        os.remove(filepath)
+                        logger.info(f"【{task_name}】已删除源文件: {rel_path}")
+                    except OSError as e:
+                        logger.error(f"【{task_name}】删除源文件失败: {rel_path}\n{e}")
+                    state_manager.reset_failure(filepath)
+                else:
+                    state_manager.mark_success(filepath, time.time())
+                    logger.info(
+                        f"【{task_name}】源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
+                    )
+            else:
+                os.makedirs(bak_dir, exist_ok=True)
 
-            # 移动源文件到 backup_dir
-            shutil.move(filepath, bak_filepath)
+                logger.debug(
+                    f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
+                )
+                shutil.move(filepath, bak_filepath)
 
-            # 重置失败记录
-            state_manager.reset_failure(filepath)
+                # 重置失败记录
+                state_manager.reset_failure(filepath)
 
             # 清理 source_dir 中的空文件夹
             clean_empty_dirs(source_dir)
         else:
             error_msg = "\n".join(error_output[-20:])  # 只取最后20行错误信息
-            logger.error(f"转码失败，原因:\n{error_msg}")
+            logger.error(f"【{task_name}】处理失败，原因:\n{error_msg}")
 
             # 增加失败次数
             if use_fallback:
@@ -179,9 +239,18 @@ def process_file(filepath, task, state_manager, logger):
                     state_manager.increment_failure(filepath)
 
             # 如果生成了不完整的输出文件，将其删除
-            if os.path.exists(dst_filepath):
-                os.remove(dst_filepath)
+            if os.path.exists(final_dest_dir):
+                current_files = set(os.listdir(final_dest_dir))
+                new_files = current_files - existing_files
+                for f in new_files:
+                    if f.startswith(name):
+                        f_path = os.path.join(final_dest_dir, f)
+                        if os.path.exists(f_path):
+                            try:
+                                os.remove(f_path)
+                            except OSError:
+                                pass
 
     except Exception as e:
-        logger.error(f"其他失败，原因:\n{e}")
+        logger.error(f"【{task_name}】其他失败，原因:\n{e}")
         state_manager.increment_failure(filepath)
