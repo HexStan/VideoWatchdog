@@ -224,7 +224,7 @@ class TestScanner:
 
         def mock_stat(path):
             call_count[0] += 1
-            if call_count[0] == 1:
+            if path == filepath:
                 raise OSError("stat failed")
             return original_stat(path)
 
