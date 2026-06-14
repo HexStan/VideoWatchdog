@@ -2,7 +2,7 @@ import json
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 import pytest
 
@@ -82,7 +82,11 @@ def sample_state_file_with_data(temp_dir):
     path = os.path.join(temp_dir, "state.json")
     data = {
         "/test/file1.mp4": {"failures": 2, "ffmpeg_failures": 1, "success_time": None},
-        "/test/file2.mp4": {"failures": 0, "ffmpeg_failures": 0, "success_time": 1234567890.0},
+        "/test/file2.mp4": {
+            "failures": 0,
+            "ffmpeg_failures": 0,
+            "success_time": 1234567890.0,
+        },
         "/test/file3.mp4": 3,
     }
     with open(path, "w", encoding="utf-8") as f:

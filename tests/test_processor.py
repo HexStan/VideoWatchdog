@@ -1,6 +1,6 @@
 import os
 import time
-from unittest.mock import ANY, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -31,6 +31,7 @@ def _make_task_config(**overrides):
 class TestCleanupExpiredFiles:
     def test_deletes_file_and_removes_record(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "expired.mp4")
         with open(filepath, "w") as f:
@@ -42,14 +43,13 @@ class TestCleanupExpiredFiles:
         assert sm.get_success_time(filepath) is None
 
     def test_handles_oserror(self, mock_logger):
-        from modules.state import StateManager
+
         sm = MagicMock()
         with patch("os.remove", side_effect=OSError("permission denied")):
             cleanup_expired_files(["/fake/file.mp4"], sm, mock_logger)
             mock_logger.error.assert_called()
 
     def test_handles_empty_list(self, mock_logger):
-        from modules.state import StateManager
         sm = MagicMock()
         cleanup_expired_files([], sm, mock_logger)
         sm.remove_record.assert_not_called()
@@ -59,9 +59,12 @@ class TestProcessFileStabilityCheck:
     @pytest.fixture
     def mock_state(self, temp_dir):
         from modules.state import StateManager
+
         return StateManager(os.path.join(temp_dir, "state.json"))
 
-    def test_stability_check_passes_when_size_unchanged(self, temp_dir, mock_logger, mock_state):
+    def test_stability_check_passes_when_size_unchanged(
+        self, temp_dir, mock_logger, mock_state
+    ):
         filepath = os.path.join(temp_dir, "stable.mp4")
         with open(filepath, "w") as f:
             f.write("d" * 1000)
@@ -79,7 +82,9 @@ class TestProcessFileStabilityCheck:
             process_file(entry, tc, mock_state, mock_logger)
             mock_move.assert_called_once()
 
-    def test_stability_check_fails_when_size_changed(self, temp_dir, mock_logger, mock_state):
+    def test_stability_check_fails_when_size_changed(
+        self, temp_dir, mock_logger, mock_state
+    ):
         filepath = os.path.join(temp_dir, "changing.mp4")
         with open(filepath, "w") as f:
             f.write("d" * 1000)
@@ -101,7 +106,9 @@ class TestProcessFileStabilityCheck:
         with patch("os.path.getsize", side_effect=mock_getsize):
             process_file(entry, tc, mock_state, mock_logger)
 
-    def test_stability_check_file_missing_before(self, temp_dir, mock_logger, mock_state):
+    def test_stability_check_file_missing_before(
+        self, temp_dir, mock_logger, mock_state
+    ):
         tc = _make_task_config(
             source_dir=temp_dir,
             dest_dir=os.path.join(temp_dir, "dest"),
@@ -109,10 +116,14 @@ class TestProcessFileStabilityCheck:
             stable_duration=0.01,
         )
 
-        entry = ScanEntry(filepath=os.path.join(temp_dir, "gone.mp4"), action="process", size=1000)
+        entry = ScanEntry(
+            filepath=os.path.join(temp_dir, "gone.mp4"), action="process", size=1000
+        )
         process_file(entry, tc, mock_state, mock_logger)
 
-    def test_stability_check_file_missing_after(self, temp_dir, mock_logger, mock_state):
+    def test_stability_check_file_missing_after(
+        self, temp_dir, mock_logger, mock_state
+    ):
         filepath = os.path.join(temp_dir, "temp.mp4")
         with open(filepath, "w") as f:
             f.write("d" * 1000)
@@ -141,6 +152,7 @@ class TestProcessFileStabilityCheck:
 class TestProcessFileDirectMove:
     def test_direct_move_success(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -152,7 +164,11 @@ class TestProcessFileDirectMove:
         with open(filepath, "w") as f:
             f.write("content")
 
-        tc = _make_task_config(source_dir=src_dir, dest_dir=dst_dir, backup_dir=os.path.join(temp_dir, "backup"))
+        tc = _make_task_config(
+            source_dir=src_dir,
+            dest_dir=dst_dir,
+            backup_dir=os.path.join(temp_dir, "backup"),
+        )
         entry = ScanEntry(filepath=filepath, action="direct_move", size=7)
 
         process_file(entry, tc, sm, mock_logger)
@@ -161,6 +177,7 @@ class TestProcessFileDirectMove:
 
     def test_direct_move_failure(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         filepath = os.path.join(temp_dir, "test.txt")
@@ -178,6 +195,7 @@ class TestProcessFileDirectMove:
 class TestProcessFileFfmpegProcessing:
     def test_ffmpeg_success(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -213,6 +231,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_ffmpeg_failure_increments_failures(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -247,6 +266,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_ffmpeg_fallback_used(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -291,6 +311,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_ffmpeg_exception_increments_failure(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -319,6 +340,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_remove_source_immediate_delete(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -356,6 +378,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_remove_source_delayed(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -395,6 +418,7 @@ class TestProcessFileFfmpegProcessing:
 
     def test_partial_output_cleanup_on_failure(self, temp_dir, mock_logger):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")
@@ -443,8 +467,11 @@ class TestProcessFileFfmpegProcessing:
         assert os.path.exists(other_file)
         assert sm.get_failures(filepath) == 1
 
-    def test_ffmpeg_fallback_failure_increments_normal_failure(self, temp_dir, mock_logger):
+    def test_ffmpeg_fallback_failure_increments_normal_failure(
+        self, temp_dir, mock_logger
+    ):
         from modules.state import StateManager
+
         sm = StateManager(os.path.join(temp_dir, "state.json"))
 
         src_dir = os.path.join(temp_dir, "source")

@@ -26,27 +26,33 @@ class TestTaskConfigFromDict:
 
     def test_missing_source_dir_raises_error(self):
         with pytest.raises(ValueError, match="缺失了必要项: source_dir"):
-            TaskConfig.from_dict({
-                "dest_dir": "./dest",
-                "backup_dir": "./backup",
-                "ffmpeg_cmd": "ffmpeg",
-            })
+            TaskConfig.from_dict(
+                {
+                    "dest_dir": "./dest",
+                    "backup_dir": "./backup",
+                    "ffmpeg_cmd": "ffmpeg",
+                }
+            )
 
     def test_missing_dest_dir_raises_error(self):
         with pytest.raises(ValueError, match="缺失了必要项: dest_dir"):
-            TaskConfig.from_dict({
-                "source_dir": "./source",
-                "backup_dir": "./backup",
-                "ffmpeg_cmd": "ffmpeg",
-            })
+            TaskConfig.from_dict(
+                {
+                    "source_dir": "./source",
+                    "backup_dir": "./backup",
+                    "ffmpeg_cmd": "ffmpeg",
+                }
+            )
 
     def test_missing_ffmpeg_cmd_raises_error(self):
         with pytest.raises(ValueError, match="缺失了必要项: ffmpeg_cmd"):
-            TaskConfig.from_dict({
-                "source_dir": "./source",
-                "dest_dir": "./dest",
-                "backup_dir": "./backup",
-            })
+            TaskConfig.from_dict(
+                {
+                    "source_dir": "./source",
+                    "dest_dir": "./dest",
+                    "backup_dir": "./backup",
+                }
+            )
 
     def test_remove_source_true_without_backup_dir(self):
         task_dict = {
@@ -61,11 +67,13 @@ class TestTaskConfigFromDict:
 
     def test_remove_source_false_without_backup_dir_raises_error(self):
         with pytest.raises(ValueError, match="缺失了必要项: backup_dir"):
-            TaskConfig.from_dict({
-                "source_dir": "./source",
-                "dest_dir": "./dest",
-                "ffmpeg_cmd": "ffmpeg",
-            })
+            TaskConfig.from_dict(
+                {
+                    "source_dir": "./source",
+                    "dest_dir": "./dest",
+                    "ffmpeg_cmd": "ffmpeg",
+                }
+            )
 
     def test_overlapping_formats_raises_error(self):
         task_dict = {
@@ -139,7 +147,7 @@ class TestTaskConfigFromDict:
             "source_dir": "./source",
             "dest_dir": "./dest",
             "backup_dir": "./backup",
-            "ffmpeg_cmd": "ffmpeg -y \\\n  -i \"{input}\" \\\n  \"{output}.mp4\"",
+            "ffmpeg_cmd": 'ffmpeg -y \\\n  -i "{input}" \\\n  "{output}.mp4"',
         }
         tc = TaskConfig.from_dict(task_dict)
         assert "{input}" in tc.ffmpeg_cmd

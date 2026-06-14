@@ -2,9 +2,7 @@ import glob
 import logging
 import os
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
-
-import pytest
+from unittest.mock import patch
 
 from modules.logger import (
     DailyRotatingFileHandler,
@@ -17,7 +15,7 @@ class TestDailyRotatingFileHandler:
     def test_init_creates_handler(self, temp_dir):
         handler = DailyRotatingFileHandler(temp_dir, 7)
         today = datetime.now().strftime("%Y%m%d")
-        expected_filename = os.path.join(temp_dir, f"videowatchdog-{today}.log")
+        # expected_filename = os.path.join(temp_dir, f"videowatchdog-{today}.log")
         assert handler.current_date == today
         assert handler.max_log_files == 7
         handler.close()
@@ -25,7 +23,9 @@ class TestDailyRotatingFileHandler:
     def test_emit_same_day_no_rotation(self, temp_dir):
         handler = DailyRotatingFileHandler(temp_dir, 7)
         original_filename = handler.baseFilename
-        record = logging.LogRecord("test", logging.INFO, "", 0, "test message", (), None)
+        record = logging.LogRecord(
+            "test", logging.INFO, "", 0, "test message", (), None
+        )
         handler.emit(record)
         assert handler.baseFilename == original_filename
         handler.close()
@@ -42,7 +42,9 @@ class TestDailyRotatingFileHandler:
         handler.current_date = yesterday
         handler.baseFilename = yesterday_file
 
-        record = logging.LogRecord("test", logging.INFO, "", 0, "test message", (), None)
+        record = logging.LogRecord(
+            "test", logging.INFO, "", 0, "test message", (), None
+        )
         handler.emit(record)
         assert handler.current_date == today
         handler.close()
@@ -57,7 +59,9 @@ class TestDailyRotatingFileHandler:
         handler.current_date = yesterday
         handler.baseFilename = yesterday_file
 
-        record = logging.LogRecord("test", logging.INFO, "", 0, "test message", (), None)
+        record = logging.LogRecord(
+            "test", logging.INFO, "", 0, "test message", (), None
+        )
         handler.emit(record)
         handler.close()
 
@@ -137,7 +141,10 @@ class TestCleanupOldLogs:
 
         log_files = glob.glob(os.path.join(temp_dir, "videowatchdog-*.log"))
         assert len(log_files) == 2
-        remaining_dates = [os.path.basename(f).replace("videowatchdog-", "").replace(".log", "") for f in log_files]
+        remaining_dates = [
+            os.path.basename(f).replace("videowatchdog-", "").replace(".log", "")
+            for f in log_files
+        ]
         assert dates[-1] in remaining_dates
         assert dates[-2] in remaining_dates
 

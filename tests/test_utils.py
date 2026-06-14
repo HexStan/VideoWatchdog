@@ -1,7 +1,6 @@
 import json
 import os
-import tempfile
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -143,13 +142,15 @@ class TestGetMediaInfo:
 
         output = {
             "format": {},
-            "streams": [{
-                "codec_type": "video",
-                "codec_name": "h264",
-                "r_frame_rate": "24000/1001",
-                "width": 1920,
-                "height": 1080,
-            }],
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "r_frame_rate": "24000/1001",
+                    "width": 1920,
+                    "height": 1080,
+                }
+            ],
         }
         mock_result = MagicMock()
         mock_result.returncode = 0
@@ -160,7 +161,10 @@ class TestGetMediaInfo:
             assert pytest.approx(info["framerate"], rel=1e-3) == 24000 / 1001
 
     def test_size_oserror_handled(self):
-        with patch("os.path.exists", return_value=True), patch("os.path.getsize", side_effect=OSError("permission denied")):
+        with (
+            patch("os.path.exists", return_value=True),
+            patch("os.path.getsize", side_effect=OSError("permission denied")),
+        ):
             with patch("subprocess.run", side_effect=Exception("skip ffprobe")):
                 info = get_media_info("/fake/file.mp4")
                 assert info["size"] == 0
@@ -172,13 +176,15 @@ class TestGetMediaInfo:
 
         output = {
             "format": {},
-            "streams": [{
-                "codec_type": "video",
-                "codec_name": "h264",
-                "avg_frame_rate": "24/0",
-                "width": 1920,
-                "height": 1080,
-            }],
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "avg_frame_rate": "24/0",
+                    "width": 1920,
+                    "height": 1080,
+                }
+            ],
         }
         mock_result = MagicMock()
         mock_result.returncode = 0
@@ -195,13 +201,15 @@ class TestGetMediaInfo:
 
         output = {
             "format": {},
-            "streams": [{
-                "codec_type": "video",
-                "codec_name": "h264",
-                "avg_frame_rate": "30",
-                "width": 1920,
-                "height": 1080,
-            }],
+            "streams": [
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "avg_frame_rate": "30",
+                    "width": 1920,
+                    "height": 1080,
+                }
+            ],
         }
         mock_result = MagicMock()
         mock_result.returncode = 0
@@ -219,8 +227,18 @@ class TestGetMediaInfo:
         output = {
             "format": {},
             "streams": [
-                {"codec_type": "video", "codec_name": "h264", "width": 1920, "height": 1080},
-                {"codec_type": "video", "codec_name": "mpeg4", "width": 720, "height": 480},
+                {
+                    "codec_type": "video",
+                    "codec_name": "h264",
+                    "width": 1920,
+                    "height": 1080,
+                },
+                {
+                    "codec_type": "video",
+                    "codec_name": "mpeg4",
+                    "width": 720,
+                    "height": 480,
+                },
                 {"codec_type": "audio", "codec_name": "aac", "bit_rate": "128000"},
                 {"codec_type": "audio", "codec_name": "mp3", "bit_rate": "192000"},
             ],

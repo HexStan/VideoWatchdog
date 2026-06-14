@@ -110,156 +110,289 @@ class TestFileFilterMatch:
 
     def test_fail_size_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 100, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 100,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_size_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
         ff.size_max = parse_size("100MB")
-        info = {"size": 200 * 1024 * 1024, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 200 * 1024 * 1024,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_duration_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 1, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 1,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_duration_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 50000, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 50000,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_total_bitrate_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 100,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 100,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_total_bitrate_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 100000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 100000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_video_bitrate_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 100, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 100,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_video_bitrate_max(self, basic_filter_config):
         ff = FileFilter({"video_bitrate": {"max": "10Mbps"}})
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 20000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 20000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_audio_bitrate_min(self, basic_filter_config):
         ff = FileFilter({"audio_bitrate": {"min": "320Kbps"}})
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 64000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 64000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_audio_bitrate_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
         ff.a_bitrate_max = parse_bitrate("128Kbps")
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_framerate_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 10, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 10,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_framerate_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 120, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 120,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_short_side_min(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 480,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 480,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_short_side_max(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 2160,
-                "video_codec": "h264", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 2160,
+            "video_codec": "h264",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_excluded_video_codec(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "hevc", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "hevc",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_fail_excluded_audio_codec(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "h264", "audio_codec": "opus"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "h264",
+            "audio_codec": "opus",
+        }
         assert ff.match(info) is False
 
     def test_fail_excluded_video_codec_case_insensitive(self, basic_filter_config):
         ff = FileFilter(basic_filter_config)
-        info = {"size": 52428800, "duration": 120, "total_bitrate": 5000000,
-                "video_bitrate": 3000000, "audio_bitrate": 192000,
-                "framerate": 30, "short_side": 1080,
-                "video_codec": "HEVC", "audio_codec": "aac"}
+        info = {
+            "size": 52428800,
+            "duration": 120,
+            "total_bitrate": 5000000,
+            "video_bitrate": 3000000,
+            "audio_bitrate": 192000,
+            "framerate": 30,
+            "short_side": 1080,
+            "video_codec": "HEVC",
+            "audio_codec": "aac",
+        }
         assert ff.match(info) is False
 
     def test_match_with_logger_logs_debug(self, basic_filter_config):
         ff = FileFilter({"size": {"min": "1GB"}})
-        mock_logger = type("MockLogger", (), {"debug": lambda self, msg: setattr(self, "last_msg", msg)})()
+        mock_logger = type(
+            "MockLogger",
+            (),
+            {"debug": lambda self, msg: setattr(self, "last_msg", msg)},
+        )()
         info = {"size": 100}
-        assert ff.match(info, logger=mock_logger, rel_path="test.mp4", task_name="T1") is False
+        assert (
+            ff.match(info, logger=mock_logger, rel_path="test.mp4", task_name="T1")
+            is False
+        )
         assert "T1" in mock_logger.last_msg
         assert "test.mp4" in mock_logger.last_msg
 
     def test_threshold_zero_skips_check(self):
         ff = FileFilter({})
-        info = {"size": 0, "duration": 0, "total_bitrate": 0,
-                "video_bitrate": 0, "audio_bitrate": 0,
-                "framerate": 0, "short_side": 0,
-                "video_codec": "", "audio_codec": ""}
+        info = {
+            "size": 0,
+            "duration": 0,
+            "total_bitrate": 0,
+            "video_bitrate": 0,
+            "audio_bitrate": 0,
+            "framerate": 0,
+            "short_side": 0,
+            "video_codec": "",
+            "audio_codec": "",
+        }
         assert ff.match(info) is True
 
 
