@@ -14,7 +14,7 @@ def cleanup_expired_files(expired_files, state_manager, logger):
         try:
             os.remove(filepath)
             logger.info(f"已删除过期源文件: {filepath}")
-            state_manager.remove_record(filepath)
+            state_manager.delete_record(filepath)
         except OSError as e:
             logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
@@ -80,8 +80,7 @@ def process_file(entry, task_config, state_manager, logger):
         try:
             logger.info(f"【{task_name}】直接移动文件 {rel_path} 至 {dest_dir}")
             shutil.move(filepath, dst_filepath)
-            state_manager.reset_failure(filepath)
-            # 清理 source_dir 中的空文件夹
+            state_manager.mark_success(filepath, time.time())
             clean_empty_dirs(source_dir)
         except Exception as e:
             logger.error(f"【{task_name}】直接移动文件失败: {rel_path}\n{e}")
@@ -113,7 +112,7 @@ def process_file(entry, task_config, state_manager, logger):
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
-        if state_manager.get_ffmpeg_failures(filepath) >= fallback_count:
+        if             state_manager.get_ffmpeg_failure_count(filepath) >= fallback_count:
             use_fallback = True
 
     if use_fallback:
@@ -206,7 +205,7 @@ def process_file(entry, task_config, state_manager, logger):
                         logger.info(f"【{task_name}】已删除源文件: {rel_path}")
                     except OSError as e:
                         logger.error(f"【{task_name}】删除源文件失败: {rel_path}\n{e}")
-                    state_manager.reset_failure(filepath)
+                    state_manager.mark_success(filepath, time.time())
                 else:
                     state_manager.mark_success(filepath, time.time())
                     logger.info(
@@ -220,8 +219,7 @@ def process_file(entry, task_config, state_manager, logger):
                 )
                 shutil.move(filepath, bak_filepath)
 
-                # 重置失败记录
-                state_manager.reset_failure(filepath)
+                state_manager.mark_success(filepath, time.time())
 
             # 清理 source_dir 中的空文件夹
             clean_empty_dirs(source_dir)

@@ -66,7 +66,7 @@ class Scanner:
                     )
                     continue
 
-                failures = state_manager.get_failures(filepath)
+                failures = state_manager.get_failure_count(filepath)
                 if failures >= failure_count:
                     logger.debug(
                         f"【{task_name}】跳过 {rel_path}，原因: 失败次数 ({failures}) 已达到上限 ({failure_count})"

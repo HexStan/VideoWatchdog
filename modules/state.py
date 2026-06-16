@@ -6,7 +6,6 @@ class StateManager:
     def __init__(self, state_file="logs/state.json"):
         self.state_file = state_file
 
-        # 确保状态文件所在的目录存在
         state_dir = os.path.dirname(self.state_file)
         if state_dir:
             os.makedirs(state_dir, exist_ok=True)
@@ -19,8 +18,12 @@ class StateManager:
                 with open(self.state_file, "r", encoding="utf-8") as f:
                     return json.load(f)
             except json.JSONDecodeError:
-                return {}
-        return {}
+                return self._empty_state()
+        return self._empty_state()
+
+    @staticmethod
+    def _empty_state():
+        return {"failures": {}, "ffmpeg_failures": {}, "success_time": {}}
 
     def _save(self):
         try:
@@ -29,62 +32,42 @@ class StateManager:
         except IOError as e:
             print(f"保存状态失败，原因:\n{e}")
 
-    def get_failures(self, filepath):
-        """获取指定文件的失败次数"""
-        val = self.state.get(filepath, {})
-        if isinstance(val, int):
-            return val
-        return val.get("failures", 0)
+    def _prune_empty(self):
+        for key in ("failures", "ffmpeg_failures"):
+            d = self.state.get(key, {})
+            empty_keys = [k for k, v in d.items() if v == 0]
+            for k in empty_keys:
+                del d[k]
 
-    def get_ffmpeg_failures(self, filepath):
-        """获取指定文件的 FFmpeg 失败次数"""
-        val = self.state.get(filepath, {})
-        if isinstance(val, int):
-            return 0
-        return val.get("ffmpeg_failures", 0)
+    def get_failure_count(self, filepath):
+        return self.state.get("failures", {}).get(filepath, 0)
+
+    def get_ffmpeg_failure_count(self, filepath):
+        return self.state.get("ffmpeg_failures", {}).get(filepath, 0)
 
     def increment_failure(self, filepath):
-        """增加指定文件的失败次数并持久化"""
-        val = self.state.get(filepath, {})
-        if isinstance(val, int):
-            val = {"failures": val, "ffmpeg_failures": 0}
-        val["failures"] = val.get("failures", 0) + 1
-        self.state[filepath] = val
+        d = self.state.setdefault("failures", {})
+        d[filepath] = d.get(filepath, 0) + 1
+        self._prune_empty()
         self._save()
 
     def increment_ffmpeg_failure(self, filepath):
-        """增加指定文件的 FFmpeg 失败次数并持久化"""
-        val = self.state.get(filepath, {})
-        if isinstance(val, int):
-            val = {"failures": val, "ffmpeg_failures": 0}
-        val["ffmpeg_failures"] = val.get("ffmpeg_failures", 0) + 1
-        self.state[filepath] = val
+        d = self.state.setdefault("ffmpeg_failures", {})
+        d[filepath] = d.get(filepath, 0) + 1
+        self._prune_empty()
         self._save()
 
-    def reset_failure(self, filepath):
-        """重置（删除）指定文件的失败记录"""
-        if filepath in self.state:
-            del self.state[filepath]
-            self._save()
-
     def mark_success(self, filepath, timestamp):
-        """记录文件处理成功的时间，并重置失败次数"""
-        self.state[filepath] = {
-            "failures": 0,
-            "ffmpeg_failures": 0,
-            "success_time": timestamp,
-        }
+        self.state.setdefault("success_time", {})[filepath] = timestamp
+        self.state.get("failures", {}).pop(filepath, None)
+        self.state.get("ffmpeg_failures", {}).pop(filepath, None)
         self._save()
 
     def get_success_time(self, filepath):
-        """获取文件处理成功的时间"""
-        val = self.state.get(filepath, {})
-        if isinstance(val, int):
-            return None
-        return val.get("success_time", None)
+        return self.state.get("success_time", {}).get(filepath)
 
-    def remove_record(self, filepath):
-        """完全删除指定文件的记录"""
-        if filepath in self.state:
-            del self.state[filepath]
-            self._save()
+    def delete_record(self, filepath):
+        for key in ("failures", "ffmpeg_failures", "success_time"):
+            if key in self.state:
+                self.state[key].pop(filepath, None)
+        self._save()
