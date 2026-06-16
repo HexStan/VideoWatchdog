@@ -90,11 +90,6 @@ def process_file(entry, task_config, state_manager, logger):
     # 构造输出文件基础路径（不含扩展名）
     dst_basepath = os.path.join(final_dest_dir, name)
 
-    # 构造备份路径
-    if not remove_source:
-        bak_dir = os.path.join(backup_dir, rel_dir)
-        bak_filepath = os.path.join(bak_dir, filename)
-
     # 确保输出目录存在
     os.makedirs(final_dest_dir, exist_ok=True)
 
@@ -212,12 +207,17 @@ def process_file(entry, task_config, state_manager, logger):
                         f"【{task_name}】源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
                     )
             else:
-                os.makedirs(bak_dir, exist_ok=True)
+                if backup_dir:
+                    bak_dir = os.path.join(backup_dir, rel_dir)
+                    bak_filepath = os.path.join(bak_dir, filename)
+                    os.makedirs(bak_dir, exist_ok=True)
 
-                logger.debug(
-                    f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
-                )
-                shutil.move(filepath, bak_filepath)
+                    logger.debug(
+                        f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
+                    )
+                    shutil.move(filepath, bak_filepath)
+                else:
+                    logger.info(f"【{task_name}】源文件保留在原位置: {rel_path}")
 
                 state_manager.mark_success(filepath, time.time())
 

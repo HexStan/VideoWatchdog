@@ -24,8 +24,6 @@ class TaskConfig:
         task_dict.setdefault("source_expired_minutes", 0)
 
         required_keys = ["source_dir", "dest_dir", "ffmpeg_cmd"]
-        if not task_dict["remove_source"]:
-            required_keys.append("backup_dir")
 
         for key in required_keys:
             if key not in task_dict:

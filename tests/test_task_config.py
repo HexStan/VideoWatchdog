@@ -65,15 +65,15 @@ class TestTaskConfigFromDict:
         assert tc.remove_source is True
         assert tc.backup_dir == ""
 
-    def test_remove_source_false_without_backup_dir_raises_error(self):
-        with pytest.raises(ValueError, match="缺失了必要项: backup_dir"):
-            TaskConfig.from_dict(
-                {
-                    "source_dir": "./source",
-                    "dest_dir": "./dest",
-                    "ffmpeg_cmd": "ffmpeg",
-                }
-            )
+    def test_remove_source_false_without_backup_dir_is_valid(self):
+        task_dict = {
+            "source_dir": "./source",
+            "dest_dir": "./dest",
+            "ffmpeg_cmd": "ffmpeg",
+        }
+        tc = TaskConfig.from_dict(task_dict)
+        assert tc.remove_source is False
+        assert tc.backup_dir == ""
 
     def test_overlapping_formats_raises_error(self):
         task_dict = {
