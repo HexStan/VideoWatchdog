@@ -1,0 +1,154 @@
+# 更新日志
+
+---
+
+## [3.0.0] - 2026-06-15
+
+### 新增
+
+- 可配置的日志等级（`log_level`），支持 `DEBUG`/`INFO`/`WARNING`/`ERROR`/`CRITICAL`。设置为 `DEBUG` 时会输出详细的文件跳过原因。
+- 文件过滤器（`[tasks.filter]`），支持按以下条件筛选文件：
+  - 文件大小（`size`），支持 `"1MB"` 等可读格式。
+  - 媒体时长（`duration`），支持 `"10s"`、`"30m"`、`"2h"` 等格式。
+  - 视频/音频/总比特率（`video_bitrate`、`audio_bitrate`、`total_bitrate`），支持 `"100K"`、`"10M"`、`"1MBPS"` 等格式。
+  - 帧率（`framerate`）。
+  - 视频短边分辨率（`short_side`）。
+  - 按编码器排除（`exclude_video_codecs`、`exclude_audio_codecs`），如 `["hevc", "av1"]`。
+- 直接移动格式（`direct_move_formats`），指定后缀的文件会跳过 FFmpeg 处理，直接从源目录移动到目标目录。
+- 源文件删除选项（`remove_source`），设置为 `true` 后处理成功直接删除源文件，不再保留备份。
+- 延迟删除选项（`source_expired_minutes`），配合 `remove_source` 使用，处理完成后保留源文件指定分钟数再删除。
+- 所有日志消息添加任务名称前缀（如 `【Task 1】`），便于多任务场景下区分。
+- 命令行参数支持：
+  - `-c` / `--config`：指定配置文件路径。
+  - `--log-dir`：覆盖日志目录。
+  - `--state-file`：覆盖状态文件路径。
+- 环境变量覆盖支持：
+  - `VIDEOWATCHDOG_SCAN_INTERVAL`、`VIDEOWATCHDOG_LOG_DIR`、`VIDEOWATCHDOG_MAX_LOG_FILES`、`VIDEOWATCHDOG_LOG_LEVEL`。
+  - `VIDEOWATCHDOG_SOURCE_DIR`、`VIDEOWATCHDOG_DEST_DIR`、`VIDEOWATCHDOG_BACKUP_DIR`。
+- Docker 多架构支持：通过 BtbN 静态构建分别支持 amd64 和 arm64。
+- 智能 ffprobe 优化：仅在过滤器需要媒体元数据时才调用 ffprobe，无需时长/比特率/编码器等条件时跳过，提升性能。
+
+### 变更
+
+- 扫描间隔改为全局参数，所有任务共享同一个 `scan_interval` 计时周期。
+- 术语更新：日志和文档中将"转码"改为"处理"，"监控"改为"监听"。
+- Docker 镜像中的 FFmpeg 安装方式从 apt 改为下载 BtbN 静态构建。
+- Docker Compose 默认挂载路径从 `./input`/`./output`/`./processed` 改为 `./source`/`./dest`/`./backup`。
+- 状态文件内部格式变更，旧格式的状态文件首次启动时将被视为空。
+
+### 修复
+
+- 修复直接移动文件时仍进行媒体信息检查的问题。
+- 修复文档中 FFmpeg 的拼写错误。
+
+### 移除
+
+- 移除 `suffix` 和 `output_format` 配置项，用户需通过 `ffmpeg_cmd` 中的 `{output}` 占位符自行构造完整输出文件名。
+- 移除 Docker Compose 中的 `restart: unless-stopped`，容器不再默认自动重启。
+
+### 破坏性变更
+
+配置文件结构发生重大变化，v2.x 的配置文件无法直接使用。
+
+### 迁移指南（v2.x → v3.0.0）
+
+| 旧配置键（v2.x） | 新配置键（v3.0.0） | 说明 |
+|---|---|---|
+| `[[tasks]].monitor_dir` | `[[tasks]].source_dir` | 重命名 |
+| `[[tasks]].output_dir` | `[[tasks]].dest_dir` | 重命名 |
+| `[[tasks]].processed_dir` | `[[tasks]].backup_dir` | 重命名；当 `remove_source = true` 时可不填 |
+| `[[tasks]].scan_interval` | `[global].scan_interval` | 移至全局配置 |
+| `[[tasks]].input_formats` | `[tasks.filter].input_formats` | 移入 filter 子表 |
+| `[[tasks]].file_mtime` | `[tasks.filter].file_mtime` | 移入 filter 子表 |
+| `[[tasks]].suffix` | *(已移除)* | 请在 `ffmpeg_cmd` 的 `{output}` 占位符中直接拼接 |
+| `[[tasks]].output_format` | *(已移除)* | 请在 `ffmpeg_cmd` 的 `{output}` 占位符中直接拼接 |
+| `{output}` 占位符行为 | `{output}` 占位符行为 | 旧版解析为完整路径（含扩展名）；新版解析为基础路径（不含扩展名），需自行追加后缀 |
+| `config/config.toml.example` | `config/config.example.toml` | 示例文件重命名 |
+| Docker 挂载 `./input`/`./output`/`./processed` | `./source`/`./dest`/`./backup` | 挂载路径重命名 |
+
+迁移步骤：
+1. 备份旧配置文件。
+2. 参考 `config/config.example.toml` 创建新的 `config/config.toml`。
+3. 将旧配置值逐一映射到新键。
+4. 将 `{output}` 的用法从 `"{output}"` 改为 `"{output}-encoded.mp4"`（根据需求调整后缀）。
+5. 如果使用 Docker，更新 `docker-compose.yml` 中的卷挂载路径。
+
+---
+
+## [2.0.2] - 2026-03-24
+
+### 新增
+
+- 运行时每日日志轮转：程序运行期间跨天时自动切换到新的日志文件。
+- 运行时自动清理旧日志：跨天轮转时自动删除超过 `max_log_files` 数量的旧日志文件。此前清理仅在启动时执行。
+
+### 变更
+
+- `.dockerignore` 新增排除 `.github` 目录，减少 Docker 构建上下文大小。
+
+---
+
+## [2.0.1] - 2026-03-23
+
+无用户可感知的变更，仅包含代码风格调整和 `.dockerignore` 文件新增。
+
+---
+
+## [2.0.0] - 2026-03-19
+
+### 新增
+
+- FFmpeg 备用命令支持：当 FFmpeg 命令连续失败达到 `fallback_count` 次后，自动切换到 `ffmpeg_cmd_fallback` 执行。可用于主命令失败时降级为更兼容的编码参数。
+
+### 变更
+
+- 配置文件和示例模板从项目根目录移至 `config/` 子目录。
+- Docker Compose 挂载方式从单文件绑定改为整个 `config/` 目录挂载。
+- 配置键 `max_retries` 重命名为 `failure_count`，功能不变。
+- 示例配置中将第二个任务的 `processed_dir` 从 `./done2` 修正为 `./processed2`。
+
+### 修复
+
+- 移除了 FFmpeg 执行前冗余的目录创建操作，避免失败时产生空目录。
+- `.gitignore` 新增 `logs/` 目录，防止日志文件被误提交。
+
+### 破坏性变更
+
+配置文件路径和键名发生变更，v1.x 的配置文件需要调整。
+
+### 迁移指南（v1.x → v2.0.0）
+
+1. 在项目根目录创建 `config/` 文件夹。
+2. 将原有的 `config.toml` 移动至 `config/config.toml`。
+3. 将配置中的 `max_retries` 重命名为 `failure_count`。
+4. 如果使用 Docker，确保 `docker-compose.yml` 中挂载的是 `./config:/app/config` 而非单文件。
+5. （可选）添加 `fallback_count` 和 `ffmpeg_cmd_fallback` 以启用备用命令功能。
+
+---
+
+## [1.0.1] - 2026-03-19
+
+### 新增
+
+- 转码成功时日志中输出实际耗时信息。
+
+### 变更
+
+- 错误消息的详细信息现在换行显示，提升多行错误输出（如 FFmpeg 错误日志）的可读性。
+
+### 修复
+
+- 修复转码期间目标目录被外部删除后，移动源文件时程序崩溃的问题。现在会自动重建缺失的目录。
+
+---
+
+## [1.0.0] - 2026-03-17
+
+- 首次发布 Realease。
+
+[3.0.0]: https://github.com/HexStan/VideoWatchdog/releases/tag/v3.0.0
+[2.0.2]: https://github.com/HexStan/VideoWatchdog/releases/tag/v2.0.2
+[2.0.1]: https://github.com/HexStan/VideoWatchdog/releases/tag/v2.0.1
+[2.0.0]: https://github.com/HexStan/VideoWatchdog/releases/tag/v2.0.0
+[1.0.1]: https://github.com/HexStan/VideoWatchdog/releases/tag/v1.0.1
+[1.0.0]: https://github.com/HexStan/VideoWatchdog/releases/tag/v1.0.0
