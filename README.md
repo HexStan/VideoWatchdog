@@ -4,6 +4,8 @@
 
 **VideoWatchdog** 是一个基于 Python 的轻量级自动化工具，用于监听指定目录中的音视频文件，并在文件写入完成后自动调用 FFmpeg 进行处理。它非常适合需要自动化音视频转码、压缩或格式转换的场景。
 
+📝 [更新日志](./CHANGELOG.md)
+
 ## 💡 启发与背景
 
 该项目受到 [jlesage/docker-handbrake](https://github.com/jlesage/docker-handbrake) 项目中的 `autovideoconverter` 功能的启发，借鉴了其核心逻辑。由于 HandBrake 对于 Linux 上 VAAPI 和 AMD GPU 私有驱动的支持不佳，所以我开发了此项目。
@@ -52,68 +54,8 @@
    ```bash
    cp config/config.toml.example config/config.toml
    ```
+
 2. **使用 Docker Compose 启动**
    ```bash
    docker-compose up -d
    ```
-
-## ⚙️ 配置说明
-
-项目使用 TOML 格式进行配置，核心配置文件为 `config/config.toml`。以下是主要配置项说明：
-
-```toml
-[global]
-scan_interval = 0      # 扫描间隔（秒），设为 0 则作为一次性任务运行
-max_log_files = 7      # 最多保留的日志文件数
-log_dir = "logs"       # 日志保存目录
-
-[[tasks]]
-name = "Task 1"                  # 任务名称
-source_dir = "./source"          # 监听目录（待处理文件所在目录）
-dest_dir = "./dest"              # 处理后的文件输出目录
-backup_dir = "./backup"          # 处理完成后，源文件的移动目录（当不配置 remove_source 时必填）
-remove_source = false            # 如果为 true，则忽略 backup_dir，在处理完音视频后直接删除源文件
-source_expired_minutes = 0       # 仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
-stable_duration = 5              # 文件大小稳定检测时间（秒）
-failure_count = 3                # 失败重试次数
-fallback_count = 3               # FFmpeg 错误回落次数，达到该次数后将使用 ffmpeg_cmd_fallback
-
-[tasks.filter]
-input_formats = ["mp4", "mkv"]   # 监听的文件格式
-direct_move_formats = ["txt", "log"] # 对应格式的文件不会留在 source_dir，而是直接移动到 dest_dir（不能与 input_formats 重复）
-file_mtime = 300                 # 文件修改时间阈值（秒），确保文件已停止修改
-# 可选过滤条件 (支持 min和max 或者 数组):
-# size = { min = "1MB", max = "20GB" }
-# duration = { min = "10s", max = "2h" }
-# video_bitrate = { min = "100K", max = "10M" }
-# audio_bitrate = { min = "64K" }
-# total_bitrate = { min = "500K" }
-# framerate = { min = 24, max = 60 }
-# short_side = { min = 720, max = 1080 }
-# exclude_video_codecs = ["hevc"]
-# exclude_audio_codecs = ["aac"]
-
-# 自定义 FFmpeg 命令，{input} 会被替换为源文件路径，{output} 会被替换为目标目录下的基础文件名（不含扩展名）
-ffmpeg_cmd = """
-ffmpeg -y \
-  -i "{input}" \
-  -c:v libx264 \
-  -preset fast \
-  -crf 23 \
-  "{output}-encoded.mp4"
-"""
-
-# 备用 FFmpeg 命令，当 ffmpeg_cmd 失败次数达到 fallback_count 时执行
-ffmpeg_cmd_fallback = """
-ffmpeg -y \
-  -i "{input}" \
-  -c:v libx264 \
-  -preset medium \
-  -crf 28 \
-  "{output}-encoded.mp4"
-"""
-```
-
-## 📄 许可证
-
-本项目基于 [MIT License](LICENSE) 开源。

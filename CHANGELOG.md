@@ -2,6 +2,76 @@
 
 ---
 
+## [4.0.0] - 2026-06-26
+
+### 新增
+
+- `backup_dir` 现为可选项。当留空且 `remove_source = false` 时，源文件处理完成后保留在原位置不做移动。
+
+### 移除
+
+- **命令行参数**：`-c` / `--config`、`--log-dir`、`--state-file` 已移除。配置文件路径固定为 `config/config.toml`，状态文件路径固定为 `logs/state.json`。
+- **环境变量覆盖**：不再支持通过以下环境变量覆盖配置项：
+  - `VIDEOWATCHDOG_SCAN_INTERVAL`
+  - `VIDEOWATCHDOG_LOG_DIR`
+  - `VIDEOWATCHDOG_MAX_LOG_FILES`
+  - `VIDEOWATCHDOG_LOG_LEVEL`
+  - `VIDEOWATCHDOG_SOURCE_DIR`
+  - `VIDEOWATCHDOG_DEST_DIR`
+  - `VIDEOWATCHDOG_BACKUP_DIR`
+  所有配置现仅通过 `config/config.toml` 设置。
+
+### 破坏性变更
+
+- 命令行参数完全移除。此前通过 `-c`、`--log-dir`、`--state-file` 传参的启动方式不再有效。
+- 环境变量覆盖完全移除。此前通过 `VIDEOWATCHDOG_*` 环境变量覆盖配置的方式不再有效。
+- 状态文件内部 JSON 结构变更（扁平结构 → 分类结构）。v3.x 格式的状态文件在首次启动时视为空，此前的失败计数与处理成功时间记录将丢失。
+
+### 迁移指南（v3.x → v4.0.0）
+
+#### 1. CLI 参数移除
+
+如果之前通过命令行参数指定路径，请改为在 `config/config.toml` 中配置：
+
+```
+# v3.x 使用方式（不再可用）
+python main.py -c /path/to/config.toml --log-dir /var/log --state-file /var/state.json
+
+# v4.0.0 使用方式
+python main.py
+# 配置文件固定为 config/config.toml
+# 日志目录在 [global] 中设置 log_dir
+# 状态文件固定为 logs/state.json
+```
+
+#### 2. 环境变量覆盖移除
+
+如果之前在 Docker 或 systemd 等环境中通过环境变量覆盖配置：
+
+```yaml
+# v3.x (docker-compose.yml)
+environment:
+  - VIDEOWATCHDOG_LOG_LEVEL=DEBUG
+  - VIDEOWATCHDOG_SOURCE_DIR=/custom/source
+```
+
+请改为直接在 `config/config.toml` 中设置对应项：
+
+```toml
+# config/config.toml
+[global]
+log_level = "DEBUG"
+
+[[tasks]]
+source_dir = "/custom/source"
+```
+
+#### 3. 状态文件格式变更
+
+旧版状态文件 `logs/state.json` 的数据（失败计数、处理成功时间）不会迁移到新格式，首次启动相当于全新状态，所有文件将被重新扫描。如有依赖状态记录的上下游逻辑，需注意此行为变化。
+
+---
+
 ## [3.0.0] - 2026-06-15
 
 ### 新增
@@ -146,6 +216,7 @@
 
 - 首次发布 Realease。
 
+[4.0.0]: https://github.com/HexStan/VideoWatchdog/releases/tag/v4.0.0
 [3.0.0]: https://github.com/HexStan/VideoWatchdog/releases/tag/v3.0.0
 [2.0.2]: https://github.com/HexStan/VideoWatchdog/releases/tag/v2.0.2
 [2.0.1]: https://github.com/HexStan/VideoWatchdog/releases/tag/v2.0.1
