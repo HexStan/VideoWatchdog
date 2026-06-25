@@ -14,10 +14,10 @@ name = "Task 1"     # 【选填】任务名称
 
 source_dir = "./source"    # 【必填】需要监听的目录 (源目录)
 dest_dir = "./dest"        # 【必填】目标目录
-backup_dir = "./backup"    # 【需要永久保留源文件则必填】处理完成后源文件的备份目录
+backup_dir = "./backup"    # 【选填】处理完成后源文件的备份目录。若不填且 remove_source = false，则源文件留在原处且永不删除
 stable_duration = 5           # 【选填】检测文件大小变化的时间间隔（秒），为0则不检测大小变化
 
-remove_source = false         # 【选填】如果为 true 则忽略 backup_dir，在处理完音视频后直接删除源文件
+remove_source = false         # 【选填】处理完音视频后直接删除源文件（为 true 时忽略 backup_dir）
 source_expired_minutes = 0    # 【选填】仅在 remove_source = true 时可用。如果非0，则将源文件留在 source_dir 超过指定分钟后再删除
 
 failure_count = 3     # 【选填】最多重试次数

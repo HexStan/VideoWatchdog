@@ -14,7 +14,7 @@ def cleanup_expired_files(expired_files, state_manager, logger):
         try:
             os.remove(filepath)
             logger.info(f"已删除过期源文件: {filepath}")
-            state_manager.remove_record(filepath)
+            state_manager.delete_record(filepath)
         except OSError as e:
             logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
@@ -80,8 +80,7 @@ def process_file(entry, task_config, state_manager, logger):
         try:
             logger.info(f"【{task_name}】直接移动文件 {rel_path} 至 {dest_dir}")
             shutil.move(filepath, dst_filepath)
-            state_manager.reset_failure(filepath)
-            # 清理 source_dir 中的空文件夹
+            state_manager.mark_success(filepath, time.time())
             clean_empty_dirs(source_dir)
         except Exception as e:
             logger.error(f"【{task_name}】直接移动文件失败: {rel_path}\n{e}")
@@ -90,11 +89,6 @@ def process_file(entry, task_config, state_manager, logger):
 
     # 构造输出文件基础路径（不含扩展名）
     dst_basepath = os.path.join(final_dest_dir, name)
-
-    # 构造备份路径
-    if not remove_source:
-        bak_dir = os.path.join(backup_dir, rel_dir)
-        bak_filepath = os.path.join(bak_dir, filename)
 
     # 确保输出目录存在
     os.makedirs(final_dest_dir, exist_ok=True)
@@ -113,7 +107,7 @@ def process_file(entry, task_config, state_manager, logger):
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
-        if state_manager.get_ffmpeg_failures(filepath) >= fallback_count:
+        if             state_manager.get_ffmpeg_failure_count(filepath) >= fallback_count:
             use_fallback = True
 
     if use_fallback:
@@ -206,22 +200,26 @@ def process_file(entry, task_config, state_manager, logger):
                         logger.info(f"【{task_name}】已删除源文件: {rel_path}")
                     except OSError as e:
                         logger.error(f"【{task_name}】删除源文件失败: {rel_path}\n{e}")
-                    state_manager.reset_failure(filepath)
+                    state_manager.mark_success(filepath, time.time())
                 else:
                     state_manager.mark_success(filepath, time.time())
                     logger.info(
                         f"【{task_name}】源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
                     )
             else:
-                os.makedirs(bak_dir, exist_ok=True)
+                if backup_dir:
+                    bak_dir = os.path.join(backup_dir, rel_dir)
+                    bak_filepath = os.path.join(bak_dir, filename)
+                    os.makedirs(bak_dir, exist_ok=True)
 
-                logger.debug(
-                    f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
-                )
-                shutil.move(filepath, bak_filepath)
+                    logger.debug(
+                        f"【{task_name}】移动源文件到备份目录: {filepath} -> {bak_filepath}"
+                    )
+                    shutil.move(filepath, bak_filepath)
+                else:
+                    logger.info(f"【{task_name}】源文件保留在原位置: {rel_path}")
 
-                # 重置失败记录
-                state_manager.reset_failure(filepath)
+                state_manager.mark_success(filepath, time.time())
 
             # 清理 source_dir 中的空文件夹
             clean_empty_dirs(source_dir)

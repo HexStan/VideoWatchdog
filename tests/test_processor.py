@@ -52,7 +52,7 @@ class TestCleanupExpiredFiles:
     def test_handles_empty_list(self, mock_logger):
         sm = MagicMock()
         cleanup_expired_files([], sm, mock_logger)
-        sm.remove_record.assert_not_called()
+        sm.delete_record.assert_not_called()
 
 
 class TestProcessFileStabilityCheck:
@@ -189,7 +189,7 @@ class TestProcessFileDirectMove:
 
         with patch("shutil.move", side_effect=Exception("move failed")):
             process_file(entry, tc, sm, mock_logger)
-            assert sm.get_failures(filepath) == 1
+            assert sm.get_failure_count(filepath) == 1
 
 
 class TestProcessFileFfmpegProcessing:
@@ -262,7 +262,7 @@ class TestProcessFileFfmpegProcessing:
         with patch("subprocess.Popen", return_value=mock_process):
             process_file(entry, tc, sm, mock_logger)
 
-        assert sm.get_failures(filepath) == 1
+        assert sm.get_failure_count(filepath) == 1
 
     def test_ffmpeg_fallback_used(self, temp_dir, mock_logger):
         from modules.state import StateManager
@@ -336,7 +336,7 @@ class TestProcessFileFfmpegProcessing:
         with patch("subprocess.Popen", side_effect=Exception("command not found")):
             process_file(entry, tc, sm, mock_logger)
 
-        assert sm.get_failures(filepath) == 1
+        assert sm.get_failure_count(filepath) == 1
 
     def test_remove_source_immediate_delete(self, temp_dir, mock_logger):
         from modules.state import StateManager
@@ -465,7 +465,48 @@ class TestProcessFileFfmpegProcessing:
         assert not os.path.exists(partial_file1)
         assert not os.path.exists(partial_file2)
         assert os.path.exists(other_file)
-        assert sm.get_failures(filepath) == 1
+        assert sm.get_failure_count(filepath) == 1
+
+    def test_remove_source_false_no_backup_dir_keeps_file_in_place(
+        self, temp_dir, mock_logger
+    ):
+        from modules.state import StateManager
+
+        sm = StateManager(os.path.join(temp_dir, "state.json"))
+
+        src_dir = os.path.join(temp_dir, "source")
+        dst_dir = os.path.join(temp_dir, "dest")
+        os.makedirs(src_dir)
+        os.makedirs(dst_dir)
+
+        filepath = os.path.join(src_dir, "test.mp4")
+        with open(filepath, "w") as f:
+            f.write("d" * 1000)
+
+        tc = _make_task_config(
+            source_dir=src_dir,
+            dest_dir=dst_dir,
+            backup_dir="",
+            remove_source=False,
+        )
+        entry = ScanEntry(
+            filepath=filepath,
+            action="process",
+            size=1000,
+            media_info={"duration": 30.0, "size": 1000},
+        )
+
+        mock_process = MagicMock()
+        mock_process.returncode = 0
+        mock_process.stderr = MagicMock()
+        mock_process.stderr.read.return_value = b""
+        mock_process.poll.return_value = 0
+
+        with patch("subprocess.Popen", return_value=mock_process):
+            process_file(entry, tc, sm, mock_logger)
+
+        assert os.path.exists(filepath)
+        assert sm.get_success_time(filepath) is not None
 
     def test_ffmpeg_fallback_failure_increments_normal_failure(
         self, temp_dir, mock_logger
@@ -510,4 +551,4 @@ class TestProcessFileFfmpegProcessing:
         with patch("subprocess.Popen", return_value=mock_process):
             process_file(entry, tc, sm, mock_logger)
 
-        assert sm.get_failures(filepath) == 1
+        assert sm.get_failure_count(filepath) == 1

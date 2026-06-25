@@ -81,13 +81,15 @@ def sample_state_file(temp_dir):
 def sample_state_file_with_data(temp_dir):
     path = os.path.join(temp_dir, "state.json")
     data = {
-        "/test/file1.mp4": {"failures": 2, "ffmpeg_failures": 1, "success_time": None},
-        "/test/file2.mp4": {
-            "failures": 0,
-            "ffmpeg_failures": 0,
-            "success_time": 1234567890.0,
+        "failures": {
+            "/test/file1.mp4": 2,
         },
-        "/test/file3.mp4": 3,
+        "ffmpeg_failures": {
+            "/test/file1.mp4": 1,
+        },
+        "success_time": {
+            "/test/file2.mp4": 1234567890.0,
+        },
     }
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f)
