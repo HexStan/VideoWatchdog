@@ -1,4 +1,3 @@
-import argparse
 import sys
 import time
 
@@ -61,43 +60,18 @@ def run_task(
     return True
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(
-        description="VideoWatchdog - 音视频文件监听与处理工具"
-    )
-    parser.add_argument(
-        "-c",
-        "--config",
-        default="config/config.toml",
-        help="配置文件路径 (默认: config/config.toml)",
-    )
-    parser.add_argument(
-        "--log-dir",
-        default=None,
-        help="日志目录 (覆盖配置文件)",
-    )
-    parser.add_argument(
-        "--state-file",
-        default="logs/state.json",
-        help="状态文件路径 (默认: logs/state.json)",
-    )
-    return parser.parse_args()
-
-
 def main():
-    args = parse_args()
-
-    lock_fd = acquire_lock()
+    _lock_fd = acquire_lock()
 
     try:
-        config = Config(args.config)
+        config = Config()
     except Exception as e:
         print(f"加载配置失败，原因:\n{e}")
         sys.exit(1)
 
     global_cfg = config.global_config
 
-    log_dir = args.log_dir or global_cfg.get("log_dir", "logs")
+    log_dir = global_cfg.get("log_dir", "logs")
     log_level = global_cfg.get("log_level", "INFO")
     logger = setup_logger(
         log_dir=log_dir,
@@ -105,7 +79,7 @@ def main():
         log_level=log_level,
     )
 
-    state_manager = StateManager(args.state_file)
+    state_manager = StateManager()
     scanner = Scanner()
     tasks = config.tasks
 

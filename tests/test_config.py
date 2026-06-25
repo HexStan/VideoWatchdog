@@ -1,5 +1,4 @@
 import os
-from unittest.mock import patch
 
 import pytest
 
@@ -91,54 +90,3 @@ ffmpeg_cmd = "ffmpeg2"
         assert config.tasks[1].source_dir == "./src2"
 
 
-class TestEnvOverrides:
-    def test_global_env_overrides(self, minimal_toml_path):
-        env_vars = {
-            "VIDEOWATCHDOG_SCAN_INTERVAL": "60",
-            "VIDEOWATCHDOG_LOG_DIR": "/custom/logs",
-            "VIDEOWATCHDOG_MAX_LOG_FILES": "10",
-            "VIDEOWATCHDOG_LOG_LEVEL": "WARNING",
-        }
-        with patch.dict(os.environ, env_vars, clear=False):
-            config = Config(minimal_toml_path)
-            gc = config.global_config
-            assert gc["scan_interval"] == 60
-            assert gc["log_dir"] == "/custom/logs"
-            assert gc["max_log_files"] == 10
-            assert gc["log_level"] == "WARNING"
-
-    def test_global_scan_interval_non_int_fallback(self, minimal_toml_path):
-        with patch.dict(
-            os.environ, {"VIDEOWATCHDOG_SCAN_INTERVAL": "invalid"}, clear=False
-        ):
-            config = Config(minimal_toml_path)
-            assert config.global_config["scan_interval"] == "invalid"
-
-    def test_task_env_overrides(self, minimal_toml_path):
-        env_vars = {
-            "VIDEOWATCHDOG_SOURCE_DIR": "/custom/source",
-            "VIDEOWATCHDOG_DEST_DIR": "/custom/dest",
-            "VIDEOWATCHDOG_BACKUP_DIR": "/custom/backup",
-        }
-        with patch.dict(os.environ, env_vars, clear=False):
-            config = Config(minimal_toml_path)
-            task = config.tasks[0]
-            assert task.source_dir == "/custom/source"
-            assert task.dest_dir == "/custom/dest"
-            assert task.backup_dir == "/custom/backup"
-
-    def test_env_override_only_applies_when_set(self, minimal_toml_path):
-        config = Config(minimal_toml_path)
-        task = config.tasks[0]
-        assert task.source_dir == "./source"
-        assert task.dest_dir == "./dest"
-
-    def test_env_override_setdefault_creates_global_dict(self, temp_dir):
-        path = os.path.join(temp_dir, "config.toml")
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(
-                "[[tasks]]\nsource_dir = './src'\ndest_dir = './dst'\nbackup_dir = './bak'\nffmpeg_cmd = 'ffmpeg'\n"
-            )
-        with patch.dict(os.environ, {"VIDEOWATCHDOG_SCAN_INTERVAL": "42"}, clear=False):
-            config = Config(path)
-            assert config.global_config["scan_interval"] == 42
