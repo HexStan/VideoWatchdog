@@ -3,5 +3,5 @@ __pycache__/
 .pytest_cache/
 
 logs/
+data/
 config.toml
-state.json

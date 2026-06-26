@@ -7,9 +7,10 @@ services:
       - TZ=Asia/Shanghai
 
     volumes:
-      # 配置文件和日志目录
+      # 配置文件和数据目录
       - ./config:/app/config
       - ./logs:/app/logs
+      - ./data:/app/data
 
       # 需要监听和处理的目录
       - ./source:/app/source

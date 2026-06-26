@@ -1,5 +1,5 @@
-import json
 import os
+import sqlite3
 import sys
 import tempfile
 from unittest.mock import MagicMock
@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 @pytest.fixture
 def temp_dir():
-    with tempfile.TemporaryDirectory() as tmp:
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmp:
         yield tmp
 
 
@@ -72,27 +72,34 @@ ffmpeg_cmd = "ffmpeg -i {input} {output}.mp4"
 
 
 @pytest.fixture
-def sample_state_file(temp_dir):
-    path = os.path.join(temp_dir, "state.json")
-    return path
+def sample_db(temp_dir):
+    return os.path.join(temp_dir, "video-watchdog.db")
 
 
 @pytest.fixture
-def sample_state_file_with_data(temp_dir):
-    path = os.path.join(temp_dir, "state.json")
-    data = {
-        "failures": {
-            "/test/file1.mp4": 2,
-        },
-        "ffmpeg_failures": {
-            "/test/file1.mp4": 1,
-        },
-        "success_time": {
-            "/test/file2.mp4": 1234567890.0,
-        },
-    }
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(data, f)
+def sample_db_with_data(temp_dir):
+    path = os.path.join(temp_dir, "video-watchdog.db")
+    conn = sqlite3.connect(path)
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS file_state ("
+        "    filepath              TEXT PRIMARY KEY,"
+        "    success_time          REAL,"
+        "    failure_count         INTEGER NOT NULL DEFAULT 0,"
+        "    ffmpeg_failure_count  INTEGER NOT NULL DEFAULT 0"
+        ")"
+    )
+    conn.execute(
+        "INSERT INTO file_state (filepath, failure_count, ffmpeg_failure_count)"
+        " VALUES (?, ?, ?)",
+        ("/test/file1.mp4", 2, 1),
+    )
+    conn.execute(
+        "INSERT INTO file_state (filepath, success_time, failure_count, ffmpeg_failure_count)"
+        " VALUES (?, ?, 0, 0)",
+        ("/test/file2.mp4", 1234567890.0),
+    )
+    conn.commit()
+    conn.close()
     return path
 
 
