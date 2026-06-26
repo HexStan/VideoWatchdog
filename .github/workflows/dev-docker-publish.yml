@@ -1,6 +1,9 @@
-name: Docker Build and Publish - Dev
+name: Docker Publish - Dev Version
 
 on:
+  push:
+    tags:
+      - "v*-dev"
   workflow_dispatch:
 
 env:
@@ -45,7 +48,6 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: |
-            # ${{ env.DOCKERHUB_REPO }}
             ${{ env.GHCR_REPO }}
           flavor: |
             latest=false
