@@ -1,6 +1,6 @@
 import pytest
 
-from modules.filter import (
+from src.filter import (
     FileFilter,
     parse_bitrate,
     parse_size,

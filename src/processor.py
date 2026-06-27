@@ -6,7 +6,7 @@ import time
 
 import humanfriendly
 
-from modules.utils import get_media_duration, clean_empty_dirs
+from src.utils import get_media_duration, clean_empty_dirs
 
 
 def cleanup_expired_files(expired_files, db_manager, logger):

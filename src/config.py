@@ -2,7 +2,7 @@ import os
 
 import toml
 
-from modules.task_config import TaskConfig
+from src.task_config import TaskConfig
 
 
 class Config:

@@ -4,8 +4,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from modules.scanner import ScanEntry, ScanReport, Scanner
-from modules.task_config import TaskConfig
+from src.scanner import ScanEntry, ScanReport, Scanner
+from src.task_config import TaskConfig
 
 
 def _make_basic_task_config(source_dir, filter_config=None):
@@ -54,13 +54,13 @@ class TestScanner:
         return Scanner()
 
     def test_nonexistent_directory_warns_once(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({})
         tc = _make_basic_task_config(
             os.path.join(temp_dir, "nonexistent"), filter_config=ff
         )
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -74,11 +74,11 @@ class TestScanner:
         mock_logger.warning.assert_called_once()
 
     def test_empty_directory(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -86,11 +86,11 @@ class TestScanner:
         assert report.entries == []
 
     def test_rejected_extension_skipped(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -101,11 +101,11 @@ class TestScanner:
         assert report.entries == []
 
     def test_already_processed_skipped(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -117,13 +117,13 @@ class TestScanner:
         assert report.entries == []
 
     def test_expired_file_added_to_report(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 1
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -135,13 +135,13 @@ class TestScanner:
         assert filepath in report.expired_files
 
     def test_not_yet_expired_not_added(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 60
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -154,11 +154,11 @@ class TestScanner:
         assert len(report.entries) == 0
 
     def test_failures_exceeded_skipped(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -171,11 +171,11 @@ class TestScanner:
         assert report.entries == []
 
     def test_mtime_too_recent_skipped(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"], "file_mtime": 60})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -187,11 +187,11 @@ class TestScanner:
             assert report.entries == []
 
     def test_filter_match_failure_skipped(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"], "size": {"min": "1GB"}})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -202,11 +202,11 @@ class TestScanner:
         assert report.entries == []
 
     def test_successful_file_adds_entry(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -220,11 +220,11 @@ class TestScanner:
         assert report.entries[0].size == 1024
 
     def test_direct_move_adds_entry(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"], "direct_move_formats": [".txt"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.txt")
@@ -236,11 +236,11 @@ class TestScanner:
         assert report.entries[0].action == "direct_move"
 
     def test_oserror_during_stat_handled(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
@@ -262,11 +262,11 @@ class TestScanner:
             mock_logger.error.assert_called()
 
     def test_subdirectory_recursion(self, scanner, mock_logger, temp_dir):
-        from modules.filter import FileFilter
+        from src.filter import FileFilter
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 

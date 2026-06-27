@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from modules.filter import FileFilter
+from src.filter import FileFilter
 
 
 @dataclass

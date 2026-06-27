@@ -4,9 +4,9 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from modules.processor import cleanup_expired_files, process_file
-from modules.scanner import ScanEntry
-from modules.task_config import TaskConfig
+from src.processor import cleanup_expired_files, process_file
+from src.scanner import ScanEntry
+from src.task_config import TaskConfig
 
 
 def _make_task_config(**overrides):
@@ -30,7 +30,7 @@ def _make_task_config(**overrides):
 
 class TestCleanupExpiredFiles:
     def test_deletes_file_and_removes_record(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "expired.mp4")
@@ -58,7 +58,7 @@ class TestCleanupExpiredFiles:
 class TestProcessFileStabilityCheck:
     @pytest.fixture
     def mock_state(self, temp_dir):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         return DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -151,7 +151,7 @@ class TestProcessFileStabilityCheck:
 
 class TestProcessFileDirectMove:
     def test_direct_move_success(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -176,7 +176,7 @@ class TestProcessFileDirectMove:
         assert os.path.exists(os.path.join(dst_dir, "test.txt"))
 
     def test_direct_move_failure(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -194,7 +194,7 @@ class TestProcessFileDirectMove:
 
 class TestProcessFileFfmpegProcessing:
     def test_ffmpeg_success(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -230,7 +230,7 @@ class TestProcessFileFfmpegProcessing:
         assert os.path.exists(os.path.join(bak_dir, "test.mp4"))
 
     def test_ffmpeg_failure_increments_failures(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -265,7 +265,7 @@ class TestProcessFileFfmpegProcessing:
         assert sm.get_failure_count(filepath) == 1
 
     def test_ffmpeg_fallback_used(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -310,7 +310,7 @@ class TestProcessFileFfmpegProcessing:
             assert "fallback_cmd" in args[0]
 
     def test_ffmpeg_exception_increments_failure(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -339,7 +339,7 @@ class TestProcessFileFfmpegProcessing:
         assert sm.get_failure_count(filepath) == 1
 
     def test_remove_source_immediate_delete(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -377,7 +377,7 @@ class TestProcessFileFfmpegProcessing:
         assert not os.path.exists(filepath)
 
     def test_remove_source_delayed(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -417,7 +417,7 @@ class TestProcessFileFfmpegProcessing:
         assert sm.get_success_time(filepath) is not None
 
     def test_partial_output_cleanup_on_failure(self, temp_dir, mock_logger):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -470,7 +470,7 @@ class TestProcessFileFfmpegProcessing:
     def test_remove_source_false_no_backup_dir_keeps_file_in_place(
         self, temp_dir, mock_logger
     ):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 
@@ -511,7 +511,7 @@ class TestProcessFileFfmpegProcessing:
     def test_ffmpeg_fallback_failure_increments_normal_failure(
         self, temp_dir, mock_logger
     ):
-        from modules.db_manager import DBManager
+        from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
 

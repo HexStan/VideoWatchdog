@@ -1,7 +1,7 @@
 import os
 import time
 
-from modules.db_manager import DBManager
+from src.db_manager import DBManager
 
 
 class TestDBManagerInit:

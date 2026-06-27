@@ -4,7 +4,7 @@ import os
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from modules.logger import (
+from src.logger import (
     DailyRotatingFileHandler,
     _cleanup_old_logs,
     setup_logger,

@@ -1,6 +1,6 @@
 import pytest
 
-from modules.task_config import TaskConfig
+from src.task_config import TaskConfig
 
 
 class TestTaskConfigFromDict:

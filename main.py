@@ -1,11 +1,11 @@
 import sys
 import time
 
-from modules.config import Config
-from modules.db_manager import DBManager
-from modules.logger import setup_logger
-from modules.processor import process_file, cleanup_expired_files
-from modules.scanner import Scanner
+from src.config import Config
+from src.db_manager import DBManager
+from src.logger import setup_logger
+from src.processor import process_file, cleanup_expired_files
+from src.scanner import Scanner
 
 try:
     import fcntl

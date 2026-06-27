@@ -2,7 +2,7 @@ import os
 import time
 from dataclasses import dataclass, field
 
-from modules.utils import get_media_info
+from src.utils import get_media_info
 
 
 @dataclass

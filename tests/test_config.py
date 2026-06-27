@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from modules.config import Config
+from src.config import Config
 
 
 class TestConfigInit:

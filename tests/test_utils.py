@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from modules.utils import clean_empty_dirs, get_media_duration, get_media_info
+from src.utils import clean_empty_dirs, get_media_duration, get_media_info
 
 
 FFPROBE_OUTPUT = {
@@ -255,11 +255,11 @@ class TestGetMediaInfo:
 
 class TestGetMediaDuration:
     def test_delegates_to_get_media_info(self):
-        with patch("modules.utils.get_media_info", return_value={"duration": 45.0}):
+        with patch("src.utils.get_media_info", return_value={"duration": 45.0}):
             assert get_media_duration("/fake/file.mp4") == 45.0
 
     def test_returns_zero_when_no_duration(self):
-        with patch("modules.utils.get_media_info", return_value={}):
+        with patch("src.utils.get_media_info", return_value={}):
             assert get_media_duration("/fake/file.mp4") == 0.0
 
 
