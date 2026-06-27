@@ -106,7 +106,7 @@ jobs:
         id: docker-tags
         run: |
           VERSION="${{ steps.version.outputs.version }}"
-          REPO="ghcr.io/${{ github.repository }}"
+          REPO="ghcr.io/$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
 
           if [ "${{ steps.version.outputs.is_dev }}" = "true" ]; then
             TAGS="${REPO}:${VERSION},${REPO}:dev"
