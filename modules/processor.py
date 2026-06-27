@@ -9,17 +9,17 @@ import humanfriendly
 from modules.utils import get_media_duration, clean_empty_dirs
 
 
-def cleanup_expired_files(expired_files, state_manager, logger):
+def cleanup_expired_files(expired_files, db_manager, logger):
     for filepath in expired_files:
         try:
             os.remove(filepath)
             logger.info(f"已删除过期源文件: {filepath}")
-            state_manager.delete_record(filepath)
+            db_manager.delete_record(filepath)
         except OSError as e:
             logger.error(f"删除过期源文件失败: {filepath}\n{e}")
 
 
-def process_file(entry, task_config, state_manager, logger):
+def process_file(entry, task_config, db_manager, logger):
     filepath = entry.filepath
     task_name = task_config.name
     source_dir = task_config.source_dir
@@ -80,11 +80,11 @@ def process_file(entry, task_config, state_manager, logger):
         try:
             logger.info(f"【{task_name}】直接移动文件 {rel_path} 至 {dest_dir}")
             shutil.move(filepath, dst_filepath)
-            state_manager.mark_success(filepath, time.time())
+            db_manager.mark_success(filepath, time.time())
             clean_empty_dirs(source_dir)
         except Exception as e:
             logger.error(f"【{task_name}】直接移动文件失败: {rel_path}\n{e}")
-            state_manager.increment_failure(filepath)
+            db_manager.increment_failure(filepath)
         return
 
     # 构造输出文件基础路径（不含扩展名）
@@ -107,7 +107,7 @@ def process_file(entry, task_config, state_manager, logger):
 
     use_fallback = False
     if fallback_count > 0 and ffmpeg_cmd_fallback:
-        if             state_manager.get_ffmpeg_failure_count(filepath) >= fallback_count:
+        if db_manager.get_ffmpeg_failure_count(filepath) >= fallback_count:
             use_fallback = True
 
     if use_fallback:
@@ -200,9 +200,9 @@ def process_file(entry, task_config, state_manager, logger):
                         logger.info(f"【{task_name}】已删除源文件: {rel_path}")
                     except OSError as e:
                         logger.error(f"【{task_name}】删除源文件失败: {rel_path}\n{e}")
-                    state_manager.mark_success(filepath, time.time())
+                    db_manager.mark_success(filepath, time.time())
                 else:
-                    state_manager.mark_success(filepath, time.time())
+                    db_manager.mark_success(filepath, time.time())
                     logger.info(
                         f"【{task_name}】源文件 {rel_path} 将在 {source_expired_minutes} 分钟后删除。"
                     )
@@ -219,7 +219,7 @@ def process_file(entry, task_config, state_manager, logger):
                 else:
                     logger.info(f"【{task_name}】源文件保留在原位置: {rel_path}")
 
-                state_manager.mark_success(filepath, time.time())
+                db_manager.mark_success(filepath, time.time())
 
             # 清理 source_dir 中的空文件夹
             clean_empty_dirs(source_dir)
@@ -229,12 +229,12 @@ def process_file(entry, task_config, state_manager, logger):
 
             # 增加失败次数
             if use_fallback:
-                state_manager.increment_failure(filepath)
+                db_manager.increment_failure(filepath)
             else:
                 if fallback_count > 0 and ffmpeg_cmd_fallback:
-                    state_manager.increment_ffmpeg_failure(filepath)
+                    db_manager.increment_ffmpeg_failure(filepath)
                 else:
-                    state_manager.increment_failure(filepath)
+                    db_manager.increment_failure(filepath)
 
             # 如果生成了不完整的输出文件，将其删除
             if os.path.exists(final_dest_dir):
@@ -251,4 +251,4 @@ def process_file(entry, task_config, state_manager, logger):
 
     except Exception as e:
         logger.error(f"【{task_name}】其他失败，原因:\n{e}")
-        state_manager.increment_failure(filepath)
+        db_manager.increment_failure(filepath)

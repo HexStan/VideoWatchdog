@@ -23,7 +23,7 @@ class Scanner:
     def __init__(self):
         self._warned_dirs = set()
 
-    def scan(self, task_config, state_manager, logger):
+    def scan(self, task_config, db_manager, logger):
         source_dir = task_config.source_dir
         file_filter = task_config.filter
         failure_count = task_config.failure_count
@@ -56,7 +56,7 @@ class Scanner:
 
                 logger.debug(f"【{task_name}】扫描到文件: {rel_path} (扩展名: {ext})")
 
-                success_time = state_manager.get_success_time(filepath)
+                success_time = db_manager.get_success_time(filepath)
                 if success_time is not None:
                     if remove_source and source_expired_minutes > 0:
                         if current_time - success_time >= source_expired_minutes * 60:
@@ -66,7 +66,7 @@ class Scanner:
                     )
                     continue
 
-                failures = state_manager.get_failure_count(filepath)
+                failures = db_manager.get_failure_count(filepath)
                 if failures >= failure_count:
                     logger.debug(
                         f"【{task_name}】跳过 {rel_path}，原因: 失败次数 ({failures}) 已达到上限 ({failure_count})"

@@ -2,7 +2,7 @@ import os
 import sqlite3
 
 
-class StateManager:
+class DBManager:
     def __init__(self, db_path="data/video-watchdog.db"):
         self.db_path = db_path
 
@@ -12,6 +12,12 @@ class StateManager:
 
         self._conn = sqlite3.connect(self.db_path)
         self._conn.execute(
+            "CREATE TABLE IF NOT EXISTS meta ("
+            "    key   TEXT PRIMARY KEY,"
+            "    value TEXT NOT NULL"
+            ")"
+        )
+        self._conn.execute(
             "CREATE TABLE IF NOT EXISTS file_state ("
             "    filepath              TEXT PRIMARY KEY,"
             "    success_time          REAL,"
@@ -20,6 +26,28 @@ class StateManager:
             ")"
         )
         self._conn.commit()
+
+        self._ensure_migrated()
+
+    def _ensure_migrated(self):
+        from scripts.migrations.detector import (
+            check_and_migrate,
+            detect_version,
+            read_version_major,
+        )
+
+        row = self._conn.execute(
+            "SELECT value FROM meta WHERE key = 'user_data_version'"
+        ).fetchone()
+
+        if row:
+            current_version = int(row[0])
+        else:
+            current_version = detect_version(self.db_path)
+            self.set_version(current_version)
+
+        if current_version < read_version_major():
+            check_and_migrate(self.db_path, current_version)
 
     def get_failure_count(self, filepath):
         row = self._conn.execute(
@@ -70,6 +98,20 @@ class StateManager:
 
     def delete_record(self, filepath):
         self._conn.execute("DELETE FROM file_state WHERE filepath = ?", (filepath,))
+        self._conn.commit()
+
+    def get_version(self):
+        row = self._conn.execute(
+            "SELECT value FROM meta WHERE key = 'user_data_version'"
+        ).fetchone()
+        return int(row[0]) if row else None
+
+    def set_version(self, version):
+        self._conn.execute(
+            "INSERT INTO meta (key, value) VALUES ('user_data_version', ?)"
+            " ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+            (str(version),),
+        )
         self._conn.commit()
 
     def close(self):

@@ -2,10 +2,10 @@ import sys
 import time
 
 from modules.config import Config
+from modules.db_manager import DBManager
 from modules.logger import setup_logger
 from modules.processor import process_file, cleanup_expired_files
 from modules.scanner import Scanner
-from modules.state import StateManager
 
 try:
     import fcntl
@@ -34,12 +34,12 @@ def acquire_lock():
 
 
 def run_task(
-    task_config, scanner, state_manager, logger, scan_interval, monitoring_logged
+    task_config, scanner, db_manager, logger, scan_interval, monitoring_logged
 ):
-    report = scanner.scan(task_config, state_manager, logger)
+    report = scanner.scan(task_config, db_manager, logger)
 
     if report.expired_files:
-        cleanup_expired_files(report.expired_files, state_manager, logger)
+        cleanup_expired_files(report.expired_files, db_manager, logger)
 
     task_name = task_config.name
     source_dir = task_config.source_dir
@@ -55,7 +55,7 @@ def run_task(
     monitoring_logged.discard(task_name)
 
     for entry in report.entries:
-        process_file(entry, task_config, state_manager, logger)
+        process_file(entry, task_config, db_manager, logger)
 
     return True
 
@@ -79,7 +79,7 @@ def main():
         log_level=log_level,
     )
 
-    state_manager = StateManager()
+    db_manager = DBManager()
     scanner = Scanner()
     tasks = config.tasks
 
@@ -94,7 +94,7 @@ def main():
             run_task(
                 task_config,
                 scanner,
-                state_manager,
+                db_manager,
                 logger,
                 scan_interval,
                 monitoring_logged,
@@ -108,7 +108,7 @@ def main():
                     run_task(
                         task_config,
                         scanner,
-                        state_manager,
+                        db_manager,
                         logger,
                         scan_interval,
                         monitoring_logged,

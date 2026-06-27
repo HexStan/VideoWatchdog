@@ -60,9 +60,9 @@ class TestScanner:
         tc = _make_basic_task_config(
             os.path.join(temp_dir, "nonexistent"), filter_config=ff
         )
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
 
         report = scanner.scan(tc, sm, mock_logger)
         assert report.entries == []
@@ -78,9 +78,9 @@ class TestScanner:
 
         ff = FileFilter({})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
 
         report = scanner.scan(tc, sm, mock_logger)
         assert report.entries == []
@@ -90,9 +90,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
 
         with open(os.path.join(temp_dir, "test.avi"), "w") as f:
             f.write("data")
@@ -105,9 +105,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -123,9 +123,9 @@ class TestScanner:
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 1
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -141,9 +141,9 @@ class TestScanner:
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 60
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -158,9 +158,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -175,9 +175,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"], "file_mtime": 60})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -191,9 +191,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"], "size": {"min": "1GB"}})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("small")
@@ -206,9 +206,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("d" * 1024)
@@ -224,9 +224,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"], "direct_move_formats": [".txt"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.txt")
         with open(filepath, "w") as f:
             f.write("text")
@@ -240,9 +240,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
         filepath = os.path.join(temp_dir, "test.mp4")
         with open(filepath, "w") as f:
             f.write("data")
@@ -266,9 +266,9 @@ class TestScanner:
 
         ff = FileFilter({"input_formats": [".mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
-        from modules.state import StateManager
+        from modules.db_manager import DBManager
 
-        sm = StateManager(os.path.join(temp_dir, "state.json"))
+        sm = DBManager(os.path.join(temp_dir, "state.json"))
 
         sub = os.path.join(temp_dir, "subdir")
         os.makedirs(sub)
