@@ -59,11 +59,13 @@ def detect_version(db_path):
                 data = json.load(f)
         except Exception:
             continue
-        if not data:
+        if not data or not isinstance(data, dict):
             continue
 
-        first_val = next(iter(data.values()))
-        first_key = next(iter(data.keys()))
+        try:
+            first_val = next(iter(data.values()))
+        except StopIteration:
+            continue
 
         if set(data.keys()) & {"failures", "ffmpeg_failures", "success_time"}:
             features.add("state_categorized")
@@ -133,7 +135,7 @@ def detect_version(db_path):
     if features:
         return 1
 
-    return read_version_major()
+    return 1
 
 
 def check_and_migrate(db_path, current_version):

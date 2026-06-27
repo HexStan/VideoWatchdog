@@ -1,7 +1,7 @@
 import os
 import sqlite3
 
-from scripts.migrations._base import Migration, read_state_json
+from scripts.migrations._base import Migration, backup_file, read_state_json
 
 
 class V4ToV5Migration(Migration):
@@ -26,6 +26,7 @@ class V4ToV5Migration(Migration):
         for path in state_json_paths:
             if not os.path.exists(path):
                 continue
+            backup_file(path)
             try:
                 data = read_state_json(path)
             except Exception:
@@ -34,11 +35,18 @@ class V4ToV5Migration(Migration):
             if not data:
                 continue
 
-            top_keys = set(data.keys())
-            if top_keys != {"failures", "ffmpeg_failures", "success_time"}:
+            if not isinstance(data, dict):
                 continue
 
-            for filepath, count in data.get("failures", {}).items():
+            if not (set(data.keys()) & {"failures", "ffmpeg_failures", "success_time"}):
+                continue
+
+            all_filepaths = set()
+            for category in ("failures", "ffmpeg_failures", "success_time"):
+                all_filepaths.update(data.get(category, {}).keys())
+
+            for filepath in all_filepaths:
+                count = data.get("failures", {}).get(filepath, 0)
                 ff_count = data.get("ffmpeg_failures", {}).get(filepath, 0)
                 st = data.get("success_time", {}).get(filepath)
                 conn.execute(

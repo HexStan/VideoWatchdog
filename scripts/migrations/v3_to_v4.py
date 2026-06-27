@@ -12,12 +12,15 @@ class V3ToV4Migration(Migration):
         for path in state_json_paths:
             if not os.path.exists(path):
                 continue
-            data = read_state_json(path)
-            if not data:
+            try:
+                data = read_state_json(path)
+            except Exception:
+                continue
+            if not data or not isinstance(data, dict):
                 continue
 
             top_keys = set(data.keys())
-            if top_keys == {"failures", "ffmpeg_failures", "success_time"}:
+            if top_keys & {"failures", "ffmpeg_failures", "success_time"}:
                 continue
 
             new_state = {
