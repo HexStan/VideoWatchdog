@@ -73,7 +73,7 @@ def process_file(entry, task_config, db_manager, logger):
     filename = os.path.basename(filepath)
     name, ext = os.path.splitext(filename)
 
-    if entry.action == "direct_move":
+    if entry.action == "passthrough":
         dst_filepath = os.path.join(final_dest_dir, filename)
         os.makedirs(final_dest_dir, exist_ok=True)
 

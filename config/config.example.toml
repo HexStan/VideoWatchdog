@@ -46,8 +46,18 @@ ffmpeg -y \
 
 # 【选填】文件过滤与匹配设置
 # [tasks.filter]
-# input_formats = ["mp4", "mkv", "avi"]    # 指定要识别并处理的文件格式（扩展名），如果不指定，则默认只识别 mp4 文件
-# direct_move_formats = ["txt", "log"]     # 对应格式的文件不会留在 source_dir，而是直接移动到 dest_dir（不能与 input_formats 重复），且不匹配 file_mtime 以外的其他条件。
+
+# 以下三个 pattern 均使用 fnmatch 语法匹配相对于 source_dir 的文件路径（不区分大小写，路径分隔符统一为 "/"），
+# 按 include -> exclude -> passthrough 的顺序流水线过滤：
+# include_patterns = [ "alpha/*", "bravo*/*", "*charlie*.mp4" ]
+#   # 指定要识别的文件。不填或为空则包含所有文件
+#   # "alpha/*" 匹配名称为 alpha 的目录下的所有文件（包括所有层级子目录）
+#   # "bravo*/*" 匹配名称以 bravo 开头的目录下的所有文件
+#   # "*charlie*.mp4" 匹配路径包含 charlie 且以 .mp4 结尾的所有文件
+# exclude_patterns = ["*.tmp"]
+#   # 匹配到的文件将被跳过
+# passthrough_patterns = ["*.txt", "*.log"]
+#   # 匹配到的文件不会留在 source_dir，而是直接移动到 dest_dir，且不匹配 file_mtime 以外的其他条件
 
 # file_mtime = 300                         # 文件修改时间阈值（秒），为0则不以修改时间为筛选条件
 # size = { min = "0", max = "20GB" }

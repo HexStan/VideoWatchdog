@@ -75,34 +75,62 @@ class TestTaskConfigFromDict:
         assert tc.remove_source is False
         assert tc.backup_dir == ""
 
-    def test_overlapping_formats_raises_error(self):
+    def test_default_patterns_are_empty(self):
         task_dict = {
             "source_dir": "./source",
             "dest_dir": "./dest",
             "backup_dir": "./backup",
             "ffmpeg_cmd": "ffmpeg",
-            "filter": {
-                "input_formats": [".mp4", ".mkv"],
-                "direct_move_formats": [".mp4"],
-            },
         }
-        with pytest.raises(ValueError, match="不能有重复的格式"):
-            TaskConfig.from_dict(task_dict)
+        tc = TaskConfig.from_dict(task_dict)
+        assert tc.filter.include_patterns == []
+        assert tc.filter.exclude_patterns == []
+        assert tc.filter.passthrough_patterns == []
 
-    def test_extension_dot_normalization(self):
+    def test_patterns_are_passed_to_filter(self):
         task_dict = {
             "source_dir": "./source",
             "dest_dir": "./dest",
             "backup_dir": "./backup",
             "ffmpeg_cmd": "ffmpeg",
             "filter": {
-                "input_formats": ["mp4", ".mkv"],
-                "direct_move_formats": ["txt"],
+                "include_patterns": ["alpha/*", "*.mp4"],
+                "exclude_patterns": ["*.tmp"],
+                "passthrough_patterns": ["*.txt"],
             },
         }
         tc = TaskConfig.from_dict(task_dict)
-        assert tc.filter.input_formats == [".mp4", ".mkv"]
-        assert tc.filter.direct_move_formats == [".txt"]
+        assert tc.filter.include_patterns == ["alpha/*", "*.mp4"]
+        assert tc.filter.exclude_patterns == ["*.tmp"]
+        assert tc.filter.passthrough_patterns == ["*.txt"]
+
+    @pytest.mark.parametrize(
+        "key", ["include_patterns", "exclude_patterns", "passthrough_patterns"]
+    )
+    def test_non_list_pattern_raises_error(self, key):
+        task_dict = {
+            "source_dir": "./source",
+            "dest_dir": "./dest",
+            "backup_dir": "./backup",
+            "ffmpeg_cmd": "ffmpeg",
+            "filter": {key: "*.mp4"},
+        }
+        with pytest.raises(ValueError, match="必须是字符串列表"):
+            TaskConfig.from_dict(task_dict)
+
+    @pytest.mark.parametrize(
+        "key", ["include_patterns", "exclude_patterns", "passthrough_patterns"]
+    )
+    def test_non_string_pattern_item_raises_error(self, key):
+        task_dict = {
+            "source_dir": "./source",
+            "dest_dir": "./dest",
+            "backup_dir": "./backup",
+            "ffmpeg_cmd": "ffmpeg",
+            "filter": {key: ["*.mp4", 123]},
+        }
+        with pytest.raises(ValueError, match="必须是字符串列表"):
+            TaskConfig.from_dict(task_dict)
 
     def test_all_fields_specified(self):
         task_dict = {
@@ -119,7 +147,7 @@ class TestTaskConfigFromDict:
             "fallback_count": 3,
             "filter": {
                 "file_mtime": 600,
-                "input_formats": [".mp4", ".avi"],
+                "include_patterns": ["*.mp4", "*.avi"],
                 "size": {"min": "100MB"},
             },
         }

@@ -43,18 +43,17 @@ class Scanner:
 
         for root, _, files in os.walk(source_dir):
             for file in files:
-                _, ext = os.path.splitext(file)
                 filepath = os.path.join(root, file)
                 rel_path = os.path.relpath(filepath, source_dir)
 
-                classification = file_filter.classify_extension(ext)
+                classification = file_filter.classify(rel_path)
                 if classification == "reject":
                     logger.debug(
-                        f"【{task_name}】跳过 {rel_path}，原因: 扩展名 {ext} 不在允许列表中"
+                        f"【{task_name}】跳过 {rel_path}，原因: 文件名不匹配过滤规则"
                     )
                     continue
 
-                logger.debug(f"【{task_name}】扫描到文件: {rel_path} (扩展名: {ext})")
+                logger.debug(f"【{task_name}】扫描到文件: {rel_path}")
 
                 success_time = db_manager.get_success_time(filepath)
                 if success_time is not None:
@@ -85,7 +84,7 @@ class Scanner:
 
                     media_info = None
 
-                    if classification != "direct_move":
+                    if classification != "passthrough":
                         if file_filter.requires_media_info():
                             logger.debug(f"【{task_name}】正在获取媒体信息: {rel_path}")
                             media_info = get_media_info(filepath)

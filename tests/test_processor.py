@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 from unittest.mock import MagicMock, patch
 
@@ -76,7 +76,7 @@ class TestProcessFileStabilityCheck:
             stable_duration=0.01,
         )
 
-        entry = ScanEntry(filepath=filepath, action="direct_move", size=1000)
+        entry = ScanEntry(filepath=filepath, action="passthrough", size=1000)
 
         with patch("shutil.move") as mock_move:
             process_file(entry, tc, mock_state, mock_logger)
@@ -149,8 +149,8 @@ class TestProcessFileStabilityCheck:
             process_file(entry, tc, mock_state, mock_logger)
 
 
-class TestProcessFileDirectMove:
-    def test_direct_move_success(self, temp_dir, mock_logger):
+class TestProcessFilePassthrough:
+    def test_passthrough_success(self, temp_dir, mock_logger):
         from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
@@ -169,13 +169,13 @@ class TestProcessFileDirectMove:
             dest_dir=dst_dir,
             backup_dir=os.path.join(temp_dir, "backup"),
         )
-        entry = ScanEntry(filepath=filepath, action="direct_move", size=7)
+        entry = ScanEntry(filepath=filepath, action="passthrough", size=7)
 
         process_file(entry, tc, sm, mock_logger)
         assert not os.path.exists(filepath)
         assert os.path.exists(os.path.join(dst_dir, "test.txt"))
 
-    def test_direct_move_failure(self, temp_dir, mock_logger):
+    def test_passthrough_failure(self, temp_dir, mock_logger):
         from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
@@ -185,7 +185,7 @@ class TestProcessFileDirectMove:
             f.write("content")
 
         tc = _make_task_config(source_dir=temp_dir)
-        entry = ScanEntry(filepath=filepath, action="direct_move", size=7)
+        entry = ScanEntry(filepath=filepath, action="passthrough", size=7)
 
         with patch("shutil.move", side_effect=Exception("move failed")):
             process_file(entry, tc, sm, mock_logger)
