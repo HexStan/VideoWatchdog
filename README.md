@@ -97,16 +97,13 @@ log_level = "INFO"      # 日志级别：DEBUG（详细）/ INFO（常规）/ WA
 
 ### 第三步：创建任务
 
-每个 `[[tasks]]` 节定义一个监听与处理任务。至少需要指定源目录、目标目录，以及要处理的文件格式：
+每个 `[[tasks]]` 节定义一个监听与处理任务。至少需要指定源目录、目标目录：
 
 ```toml
 [[tasks]]
 name = "我的任务"                           # 【选填】任务名称，用于日志标识
 source_dir = "./source"                     # 【必填】源目录
 dest_dir = "./dest"                         # 【必填】目标目录
-
-[tasks.filter]
-input_formats = ["mp4", "mkv", "avi", "mov"]  # 指定要处理的文件格式
 ```
 
 ---
@@ -139,21 +136,32 @@ input_formats = ["mp4", "mkv", "avi", "mov"]  # 指定要处理的文件格式
 
 ### 第六步：文件过滤（可选）
 
-**你需要根据文件属性筛选要处理的文件吗？**
+**你需要根据文件名或文件属性筛选要处理的文件吗？**
 
-不设置任何过滤条件时，程序处理所有匹配 `input_formats` 的文件。无需筛选则 **跳至第七步**。
+不设置任何过滤条件时，程序处理源目录中的所有文件。无需筛选则 **跳至第七步**。
 
 以下条件按需添加，均在 `[tasks.filter]` 下：
 
-**直接移动（绕过 FFmpeg）：**
+**文件名匹配（fnmatch 流水线）：**
 
-源目录中可能存在不需要转码的附属文件（如字幕、封面图），可让程序直接将其移动到目标目录：
+三个 pattern 均使用 [fnmatch](https://docs.python.org/zh-cn/3/library/fnmatch.html) 语法匹配相对于 `source_dir` 的文件路径（不区分大小写，路径分隔符统一为 `/`），按以下顺序流水线过滤：
+
+1. 匹配 `include_patterns`？匹配则进入下一步，不匹配则跳过（不填或为空则默认包含所有文件）。
+2. 匹配 `exclude_patterns`？匹配则跳过，不匹配则进入下一步。
+3. 匹配 `passthrough_patterns`？匹配则不经过 FFmpeg 直接移动到目标目录，不匹配则进入后续的属性过滤与 FFmpeg 处理。
 
 ```toml
-direct_move_formats = ["srt", "txt", "jpg"]  # 不经过 FFmpeg，直接移动
+include_patterns = [ "alpha/*", "bravo*/*", "*charlie*.mp4" ]
+# "alpha/*" 匹配名称为 alpha 的目录下的所有文件（包括所有层级子目录）
+# "bravo*/*" 匹配名称以 bravo 开头的目录下的所有文件
+# "*charlie*.mp4" 匹配路径包含 charlie 且以 .mp4 结尾的所有文件
+
+exclude_patterns = ["*.tmp"]                 # 匹配到的文件将被跳过
+
+passthrough_patterns = ["*.srt", "*.jpg"]    # 匹配到的文件（如字幕、封面图）不经过 FFmpeg，直接移动
 ```
 
-> 这些文件不会触发 ffprobe，也不会执行 FFmpeg 命令，但仍受 `file_mtime` 约束。
+> `passthrough_patterns` 匹配的文件不会触发 ffprobe，也不会执行 FFmpeg 命令，但仍受 `file_mtime` 约束。
 
 | 筛选维度 | 说明 | 示例配置 |
 |----------|------|----------|
@@ -168,9 +176,7 @@ direct_move_formats = ["srt", "txt", "jpg"]  # 不经过 FFmpeg，直接移动
 | **排除视频编码** | 跳过包含指定视频编码的文件（大小写不敏感）。 | `exclude_video_codecs = ["hevc", "av1"]` |
 | **排除音频编码** | 跳过包含指定音频编码的文件（大小写不敏感）。 | `exclude_audio_codecs = ["opus"]` |
 
-> **注意**：`input_formats` 与 `direct_move_formats` 不能有重复的扩展名。
->
-> **性能提示**：仅使用 `file_mtime` 和 `size` 时，程序不会调用 ffprobe，扫描速度更快。使用上表中后 8 项任何条件都会触发 ffprobe。
+> **性能提示**：仅使用文件名匹配、`file_mtime` 和 `size` 时，程序不会调用 ffprobe，扫描速度更快。使用上表中后 8 项任何条件都会触发 ffprobe。
 
 ---
 
@@ -249,7 +255,7 @@ dest_dir = "./output"
 # ... 其他配置 ...
 
 [tasks.filter]
-input_formats = ["mp4", "mkv"]
+include_patterns = ["*.mp4", "*.mkv"]
 
 # 第二组任务
 [[tasks]]
@@ -259,7 +265,7 @@ dest_dir = "./audio"
 # ... 其他配置 ...
 
 [tasks.filter]
-input_formats = ["flac", "wav"]
+include_patterns = ["*.flac", "*.wav"]
 ```
 
 > 每个 `[[tasks]]` 节需紧邻自己的 `[tasks.filter]` 节（如果存在）。

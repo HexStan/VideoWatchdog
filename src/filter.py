@@ -1,3 +1,5 @@
+import fnmatch
+
 import humanfriendly
 
 
@@ -51,11 +53,14 @@ class FileFilter:
     def __init__(self, filter_config):
         self.config = filter_config
 
-        self.input_formats = [
-            e.lower() for e in self.config.get("input_formats", [".mp4"])
+        self.include_patterns = [
+            p.lower() for p in self.config.get("include_patterns", [])
         ]
-        self.direct_move_formats = [
-            e.lower() for e in self.config.get("direct_move_formats", [])
+        self.exclude_patterns = [
+            p.lower() for p in self.config.get("exclude_patterns", [])
+        ]
+        self.passthrough_patterns = [
+            p.lower() for p in self.config.get("passthrough_patterns", [])
         ]
         self.file_mtime = int(self.config.get("file_mtime", 0))
 
@@ -231,16 +236,27 @@ class FileFilter:
             ]
         )
 
-    def classify_extension(self, ext):
+    @staticmethod
+    def _match_patterns(rel_path, patterns):
+        return any(fnmatch.fnmatchcase(rel_path, p) for p in patterns)
+
+    def classify(self, rel_path):
         """
-        根据扩展名判断文件分类。
-        返回 'direct_move'（直接移动）、'process'（需要处理）或 'reject'（跳过）。
+        根据相对路径判断文件分类（不区分大小写，路径分隔符统一为 '/'）。
+        流水线: include -> exclude -> passthrough。
+        返回 'reject'（跳过）、'passthrough'（直接移动）或 'process'（需要处理）。
         """
-        if ext.lower() in self.direct_move_formats:
-            return "direct_move"
-        if ext.lower() in self.input_formats:
-            return "process"
-        return "reject"
+        rel_path = rel_path.replace("\\", "/").lower()
+
+        if self.include_patterns and not self._match_patterns(
+            rel_path, self.include_patterns
+        ):
+            return "reject"
+        if self._match_patterns(rel_path, self.exclude_patterns):
+            return "reject"
+        if self._match_patterns(rel_path, self.passthrough_patterns):
+            return "passthrough"
+        return "process"
 
     def check_mtime(self, mtime, current_time):
         """

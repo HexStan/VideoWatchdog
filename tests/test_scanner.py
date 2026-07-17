@@ -1,4 +1,4 @@
-import os
+﻿import os
 import time
 from unittest.mock import MagicMock, patch
 
@@ -77,7 +77,9 @@ class TestScanner:
         from src.filter import FileFilter
 
         ff = FileFilter({})
-        tc = _make_basic_task_config(temp_dir, filter_config=ff)
+        source = os.path.join(temp_dir, "source")
+        os.makedirs(source)
+        tc = _make_basic_task_config(source, filter_config=ff)
         from src.db_manager import DBManager
 
         sm = DBManager(os.path.join(temp_dir, "state.json"))
@@ -85,10 +87,10 @@ class TestScanner:
         report = scanner.scan(tc, sm, mock_logger)
         assert report.entries == []
 
-    def test_rejected_extension_skipped(self, scanner, mock_logger, temp_dir):
+    def test_rejected_file_skipped(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -103,7 +105,7 @@ class TestScanner:
     def test_already_processed_skipped(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -119,7 +121,7 @@ class TestScanner:
     def test_expired_file_added_to_report(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 1
@@ -137,7 +139,7 @@ class TestScanner:
     def test_not_yet_expired_not_added(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         tc.remove_source = True
         tc.source_expired_minutes = 60
@@ -156,7 +158,7 @@ class TestScanner:
     def test_failures_exceeded_skipped(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -173,7 +175,7 @@ class TestScanner:
     def test_mtime_too_recent_skipped(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"], "file_mtime": 60})
+        ff = FileFilter({"include_patterns": ["*.mp4"], "file_mtime": 60})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -189,7 +191,7 @@ class TestScanner:
     def test_filter_match_failure_skipped(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"], "size": {"min": "1GB"}})
+        ff = FileFilter({"include_patterns": ["*.mp4"], "size": {"min": "1GB"}})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -204,7 +206,7 @@ class TestScanner:
     def test_successful_file_adds_entry(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -219,10 +221,15 @@ class TestScanner:
         assert report.entries[0].action == "process"
         assert report.entries[0].size == 1024
 
-    def test_direct_move_adds_entry(self, scanner, mock_logger, temp_dir):
+    def test_passthrough_adds_entry(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"], "direct_move_formats": [".txt"]})
+        ff = FileFilter(
+            {
+                "include_patterns": ["*.mp4", "*.txt"],
+                "passthrough_patterns": ["*.txt"],
+            }
+        )
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -233,12 +240,12 @@ class TestScanner:
 
         report = scanner.scan(tc, sm, mock_logger)
         assert len(report.entries) == 1
-        assert report.entries[0].action == "direct_move"
+        assert report.entries[0].action == "passthrough"
 
     def test_oserror_during_stat_handled(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 
@@ -264,7 +271,7 @@ class TestScanner:
     def test_subdirectory_recursion(self, scanner, mock_logger, temp_dir):
         from src.filter import FileFilter
 
-        ff = FileFilter({"input_formats": [".mp4"]})
+        ff = FileFilter({"include_patterns": ["*.mp4"]})
         tc = _make_basic_task_config(temp_dir, filter_config=ff)
         from src.db_manager import DBManager
 

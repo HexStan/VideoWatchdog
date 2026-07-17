@@ -33,8 +33,9 @@ class TaskConfig:
         f_config = task_dict["filter"]
 
         f_config.setdefault("file_mtime", 0)
-        f_config.setdefault("input_formats", ["mp4"])
-        f_config.setdefault("direct_move_formats", [])
+        f_config.setdefault("include_patterns", [])
+        f_config.setdefault("exclude_patterns", [])
+        f_config.setdefault("passthrough_patterns", [])
 
         task_dict.setdefault("stable_duration", 0)
         task_dict.setdefault("failure_count", 3)
@@ -42,20 +43,12 @@ class TaskConfig:
         task_dict.setdefault("ffmpeg_cmd_fallback", "")
         task_dict.setdefault("name", f"Task {index}")
 
-        f_config["input_formats"] = [
-            ext if ext.startswith(".") else f".{ext}"
-            for ext in f_config["input_formats"]
-        ]
-        f_config["direct_move_formats"] = [
-            ext if ext.startswith(".") else f".{ext}"
-            for ext in f_config["direct_move_formats"]
-        ]
-
-        overlap = set(f_config["input_formats"]) & set(f_config["direct_move_formats"])
-        if overlap:
-            raise ValueError(
-                f"任务 {index} 中 input_formats 和 direct_move_formats 不能有重复的格式: {', '.join(overlap)}"
-            )
+        for key in ("include_patterns", "exclude_patterns", "passthrough_patterns"):
+            patterns = f_config[key]
+            if not isinstance(patterns, list) or any(
+                not isinstance(p, str) for p in patterns
+            ):
+                raise ValueError(f"任务 {index} 中 {key} 必须是字符串列表")
 
         return cls(
             name=task_dict["name"],

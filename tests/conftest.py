@@ -35,8 +35,9 @@ failure_count = 5
 fallback_count = 3
 
 [tasks.filter]
-input_formats = ["mp4", "mkv"]
-direct_move_formats = ["txt"]
+include_patterns = ["*.mp4", "*.mkv", "*.txt"]
+exclude_patterns = ["*.tmp"]
+passthrough_patterns = ["*.txt"]
 file_mtime = 300
 size = { min = "1MB", max = "10GB" }
 duration = { min = "5s", max = "3600s" }
@@ -126,8 +127,9 @@ def basic_media_info():
 @pytest.fixture
 def basic_filter_config():
     return {
-        "input_formats": [".mp4", ".mkv"],
-        "direct_move_formats": [".txt"],
+        "include_patterns": ["*.mp4", "*.mkv", "*.txt"],
+        "exclude_patterns": ["*.tmp"],
+        "passthrough_patterns": ["*.txt"],
         "file_mtime": 300,
         "size": {"min": "1MB", "max": "10GB"},
         "duration": {"min": "5s", "max": "3600s"},
