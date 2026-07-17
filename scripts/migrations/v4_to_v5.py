@@ -70,13 +70,17 @@ class V4ToV5Migration(Migration):
             if old_input and isinstance(old_input, list):
                 existing = filter_cfg.get("include_patterns", [])
                 new_patterns = _extensions_to_patterns(old_input)
-                filter_cfg["include_patterns"] = list(dict.fromkeys(existing + new_patterns))
+                filter_cfg["include_patterns"] = list(
+                    dict.fromkeys(existing + new_patterns)
+                )
 
             old_direct = filter_cfg.pop("direct_move_formats", None)
             if old_direct and isinstance(old_direct, list):
                 existing = filter_cfg.get("passthrough_patterns", [])
                 new_patterns = _extensions_to_patterns(old_direct)
-                filter_cfg["passthrough_patterns"] = list(dict.fromkeys(existing + new_patterns))
+                filter_cfg["passthrough_patterns"] = list(
+                    dict.fromkeys(existing + new_patterns)
+                )
 
             filter_cfg.setdefault("include_patterns", [])
             filter_cfg.setdefault("exclude_patterns", [])

@@ -38,4 +38,3 @@ class Config:
         tasks = self.tasks
         if not tasks:
             raise ValueError("配置文件中没有任何有效任务。")
-

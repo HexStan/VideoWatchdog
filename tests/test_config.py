@@ -88,5 +88,3 @@ ffmpeg_cmd = "ffmpeg2"
         assert len(config.tasks) == 2
         assert config.tasks[0].source_dir == "./src1"
         assert config.tasks[1].source_dir == "./src2"
-
-
