@@ -60,4 +60,39 @@ class V4ToV5Migration(Migration):
         conn.close()
 
     def migrate_config(self, config_path, config_dict):
+        tasks = config_dict.get("tasks", [])
+        for task in tasks:
+            filter_cfg = task.get("filter", {})
+            if not isinstance(filter_cfg, dict):
+                continue
+
+            old_input = filter_cfg.pop("input_formats", None)
+            if old_input and isinstance(old_input, list):
+                existing = filter_cfg.get("include_patterns", [])
+                new_patterns = _extensions_to_patterns(old_input)
+                filter_cfg["include_patterns"] = list(dict.fromkeys(existing + new_patterns))
+
+            old_direct = filter_cfg.pop("direct_move_formats", None)
+            if old_direct and isinstance(old_direct, list):
+                existing = filter_cfg.get("passthrough_patterns", [])
+                new_patterns = _extensions_to_patterns(old_direct)
+                filter_cfg["passthrough_patterns"] = list(dict.fromkeys(existing + new_patterns))
+
+            filter_cfg.setdefault("include_patterns", [])
+            filter_cfg.setdefault("exclude_patterns", [])
+            filter_cfg.setdefault("passthrough_patterns", [])
+
         return config_dict
+
+
+def _extensions_to_patterns(formats):
+    patterns = []
+    for fmt in formats:
+        if not isinstance(fmt, str) or not fmt.strip():
+            continue
+        fmt = fmt.strip().lower()
+        if fmt.startswith("."):
+            patterns.append(f"*{fmt}")
+        else:
+            patterns.append(f"*.{fmt}")
+    return patterns
